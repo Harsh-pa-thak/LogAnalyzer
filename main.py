@@ -1,7 +1,11 @@
 from fastapi import FastAPI,UploadFile,File
 from fastapi.responses import JSONResponse,HTMLResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
-
+from dotenv import load_dotenv
+import os
+from langchain_core.prompts import PromptTemplate
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI
 
 
 app = FastAPI(title="Log Analyzer Agent")
@@ -11,4 +15,5 @@ app.mount("/", StaticFiles(directory=".", html=True), name="static")
 async def root():
     with open("index.html", "r") as f:
         return f.read()
+
 

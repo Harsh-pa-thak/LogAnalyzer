@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <title>Easy Log Analyzer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Analyzer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -13,33 +13,21 @@
         <div class="card">
             <div class="header">
                 <h1>Easy Log Analyzer</h1>
-                <p>Upload your Log file in form of <i>.txt</i> file and get AI analysis.</p>
+                <p>Upload your log file in <i>.txt</i> format and get AI analysis.</p>
             </div>
 
             <div class="upload-area">
                 <input type="file" id="logFile" accept=".txt" hidden>
-                <button class="btn-choose" onclick="document.getElementById('logFile').click()">
-                    📁 Choose Log File
-                </button>
+                <button class="btn-choose" id="chooseBtn">📁 Choose Log File</button>
                 <div class="file-info" id="fileInfo">No file selected</div>
-                <button class="btn-analyze" onclick="analyzeLog()">Analyze Logs</button>
+                <button class="btn-analyze" id="analyzeBtn">Analyze Logs</button>
             </div>
+
+            <div id="results" class="results"></div>
         </div>
     </div>
-    <div id="results"></div>
-    <script src="index.js"></script>
-    <script>
-        const fileInput = document.getElementById('logFile');
-        const fileInfo = document.getElementById('fileInfo');
 
-        fileInput.addEventListener('change', function () {
-            if (fileInput.files.length > 0) {
-                fileInfo.textContent = fileInput.files[0].name;
-            } else {
-                fileInfo.textContent = "No file selected";
-            }
-        });
-    </script>
+    <script src="index.js"></script>
 </body>
 
 </html>

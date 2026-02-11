@@ -1,4 +1,6 @@
 from fastapi import FastAPI,UploadFile,File
+from fastapi.responses import JSONResponse,HTMLResponse
+
 
 app = FastAPI(title="Log Analyzer Agent")
 @app.get("/")

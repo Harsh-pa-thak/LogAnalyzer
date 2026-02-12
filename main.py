@@ -35,12 +35,12 @@ def splitLog(log_data:str):
     )
     return splitter.split_text(log_data)
 
-def aLog(log_data:str):
+async def aLog(log_data:str):
     c = splitLog(log_data)
     combined=[]
     for chunk in c:
         fpt=prompt_template.format(log_data=chunk)
-        result = llm.invoke(fpt)
+        result = await llm.invoke(fpt)
         combined.append(result.content)
     return "\n\n".join(combined)
     
@@ -62,9 +62,22 @@ async def analyze_log(file: UploadFile = File(...)):
     logT = content.decode("utf-8",errors="ignore")
     if not logT.strip():
         return JSONResponse({"error": "Empty file"}, status_code=400)
-    info = analyze_log(logT)
+    info = aLog(logT)
+
     return {"analysis":info}
    except Exception as e:
     return JSONResponse({"error": str(e)}, status_code=500)
     
-    
+@app.get("/health")
+async def health_check():
+    api_key_set = bool(os.getenv("OPENAI_API_KEY"))
+    return {
+        "status": "healthy",
+        "openai_api_key_configured": api_key_set
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+

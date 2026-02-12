@@ -33,7 +33,7 @@ def splitLog(log_data:str):
         chunk_size=2000,
         chunk_overlap=200
     )
-    return text_splitter.split_text(log_data)
+    return splitter.split_text(log_data)
 
 def aLog(log_data:str):
     c = splitLog(log_data)

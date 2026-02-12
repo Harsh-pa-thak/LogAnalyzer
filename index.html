@@ -3,27 +3,141 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Easy Log Analyzer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogAI - Professional Log Analysis</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Style -->
     <link rel="stylesheet" href="style.css">
+    <!-- Markdown & Syntax Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 
 <body>
-    <div class="main-container">
-        <div class="card">
-            <div class="header">
-                <h1>Easy Log Analyzer</h1>
-                <p>Upload your log file in <i>.txt</i> format and get AI analysis.</p>
-            </div>
+    <!-- Background Elements -->
+    <div class="bg-gradient"></div>
+    <div class="bg-glow"></div>
 
-            <div class="upload-area">
-                <input type="file" id="logFile" accept=".txt" hidden>
-                <button class="btn-choose" id="chooseBtn">📁 Choose Log File</button>
-                <div class="file-info" id="fileInfo">No file selected</div>
-                <button class="btn-analyze" id="analyzeBtn">Analyze Logs</button>
+    <div class="app-container">
+        <!-- Sidebar / Header -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <h1>LogAI</h1>
             </div>
+            <nav>
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">History <span class="badge">Pro</span></a>
+                <a href="#">Settings</a>
+            </nav>
+            <div class="status-indicator">
+                <span class="dot online"></span> System Operational
+            </div>
+        </aside>
 
-            <div id="results" class="results"></div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h2>Log Analysis Dashboard</h2>
+                <div class="user-profile">
+                    <span>Admin User</span>
+                    <div class="avatar">AU</div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Upload Section -->
+                <section class="upload-section">
+                    <div class="card upload-card" id="dropZone">
+                        <div class="upload-content">
+                            <div class="icon-upload">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <h3>Upload Log File</h3>
+                            <p>Drag & drop your .txt file here or <span class="highlight-text">browse</span></p>
+                            <input type="file" id="logFile" accept=".txt" hidden>
+                            <div class="file-status" id="fileInfo">No file selected</div>
+                        </div>
+                        <div class="upload-actions">
+                            <button class="btn btn-primary" id="analyzeBtn" disabled>
+                                <span class="btn-text">Start Analysis</span>
+                                <div class="spinner"></div>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results Section -->
+                <section class="results-section">
+                    <div class="card results-card">
+                        <div class="card-header">
+                            <h3>Analysis Report</h3>
+                            <div class="actions">
+                                <button class="icon-btn" title="Copy Report" id="copyBtn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M8 17.9277L8 21C8 21.5523 8.44772 22 9 22H21C21.5523 22 22 21.5523 22 21V9C22 8.44772 21.5523 8 21 8H17.9277">
+                                        </path>
+                                        <rect x="2" y="2" width="14" height="14" rx="2"></rect>
+                                    </svg>
+                                </button>
+                                <button class="icon-btn" title="Download PDF" disabled>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15">
+                                        </path>
+                                        <path d="M7 10L12 15L17 10"></path>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="emptyState" class="empty-state">
+                                <p>Upload a log file to see the AI-powered analysis here.</p>
+                            </div>
+                            <div id="resultsContent" class="markdown-body hidden"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Initial Loader Overlay -->
+    <div id="appLoader">
+        <div class="loader-content">
+            <div class="logo-pulse">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#3b82f6" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <h2>Initializing LogAI...</h2>
         </div>
     </div>
 

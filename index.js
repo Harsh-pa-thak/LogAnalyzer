@@ -1,31 +1,97 @@
 const fileInput = document.getElementById("logFile");
 const fileInfo = document.getElementById("fileInfo");
-const chooseBtn = document.getElementById("chooseBtn");
 const analyzeBtn = document.getElementById("analyzeBtn");
-const resultsDiv = document.getElementById("results");
+const emptyState = document.getElementById("emptyState");
+const resultsContent = document.getElementById("resultsContent");
+const dropZone = document.getElementById("dropZone");
+const appLoader = document.getElementById("appLoader");
+const btnText = analyzeBtn.querySelector(".btn-text");
+const spinner = analyzeBtn.querySelector(".spinner");
 
-chooseBtn.addEventListener("click", () => {
-    fileInput.click();
+// Initialize App
+window.addEventListener("DOMContentLoaded", () => {
+    // Configure Marked to use Highlight.js
+    marked.setOptions({
+        highlight: function (code, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+                return hljs.highlight(code, { language: lang }).value;
+            }
+            return hljs.highlightAuto(code).value;
+        }
+    });
+
+    setTimeout(() => {
+        appLoader.style.opacity = "0";
+        setTimeout(() => {
+            appLoader.style.display = "none";
+        }, 500);
+    }, 800);
 });
+
+// Drag & Drop
+dropZone.addEventListener("click", (e) => {
+    if (e.target !== analyzeBtn && !analyzeBtn.contains(e.target)) {
+        fileInput.click();
+    }
+});
+
+["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+["dragenter", "dragover"].forEach(eventName => {
+    dropZone.addEventListener(eventName, highlight, false);
+});
+
+["dragleave", "drop"].forEach(eventName => {
+    dropZone.addEventListener(eventName, unhighlight, false);
+});
+
+function highlight() {
+    dropZone.classList.add("drag-over");
+}
+
+function unhighlight() {
+    dropZone.classList.remove("drag-over");
+}
+
+dropZone.addEventListener("drop", handleDrop, false);
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
 
 fileInput.addEventListener("change", () => {
-    if (fileInput.files.length > 0) {
-        fileInfo.textContent = fileInput.files[0].name;
-    } else {
-        fileInfo.textContent = "No file selected";
-    }
+    handleFiles(fileInput.files);
 });
 
+function handleFiles(files) {
+    if (files.length > 0) {
+        fileInfo.textContent = files[0].name;
+        fileInput.files = files; // Sync if dropped
+        analyzeBtn.disabled = false;
+        fileInfo.style.color = "#3b82f6";
+    }
+}
+
+// Analysis Logic
 async function uploadLog() {
     const file = fileInput.files[0];
+    if (!file) return;
 
-    if (!file) {
-        alert("Please select a log file first.");
-        return;
-    }
+    setLoading(true);
 
-    analyzeBtn.disabled = true;
-    resultsDiv.textContent = "Analyzing...";
+    // Clear previous results
+    emptyState.classList.add("hidden");
+    resultsContent.innerHTML = "";
+    resultsContent.classList.remove("hidden");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -39,21 +105,38 @@ async function uploadLog() {
         const data = await response.json();
 
         if (response.ok) {
-            resultsDiv.textContent = data.analysis;
+            // Render Markdown
+            const htmlContent = marked.parse(data.analysis);
+            resultsContent.innerHTML = htmlContent;
         } else {
-            resultsDiv.textContent = "Error: " + data.error;
+            resultsContent.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">
+                <h3>Error Encountered</h3>
+                <p>${data.error}</p>
+            </div>`;
         }
     } catch (error) {
-        resultsDiv.textContent = "Error: " + error.message;
+        resultsContent.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">
+            <h3>Connection Error</h3>
+            <p>${error.message}</p>
+        </div>`;
     } finally {
-        analyzeBtn.disabled = false;
+        setLoading(false);
     }
 }
 
-analyzeBtn.addEventListener("click", uploadLog);
-
-document.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        uploadLog();
+function setLoading(isLoading) {
+    analyzeBtn.disabled = isLoading;
+    if (isLoading) {
+        btnText.textContent = "Processing...";
+        spinner.style.display = "block";
+    } else {
+        btnText.textContent = "Start Analysis";
+        spinner.style.display = "none";
     }
+}
+
+analyzeBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent dropzone click
+    uploadLog();
 });
+

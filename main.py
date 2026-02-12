@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 from langchain_core.prompts import PromptTemplate
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
 
@@ -24,9 +24,9 @@ Logs:
 
 Respond in clear paragraphs. Avoid jargon where possible.
 """
-llm = ChatOpenAI(
+llm = ChatGoogleGenerativeAI(
     temperature=0.2,
-    model="gpt-4o-mini"
+    model="gemini-flash-latest"
 )
 def splitLog(log_data:str):
     splitter = RecursiveCharacterTextSplitter(
@@ -40,12 +40,23 @@ async def aLog(log_data:str):
     combined=[]
     for chunk in c:
         fpt=prompt_template.format(log_data=chunk)
-        result = await llm.invoke(fpt)
-        combined.append(result.content)
+        result = await llm.ainvoke(fpt)
+        
+        content = result.content
+        if isinstance(content, list):
+            # Extract text from list of content parts
+            text_parts = []
+            for part in content:
+                if isinstance(part, dict) and "text" in part:
+                     text_parts.append(part["text"])
+                elif isinstance(part, str):
+                    text_parts.append(part)
+            combined.append("".join(text_parts))
+        else:
+            combined.append(str(content))
     return "\n\n".join(combined)
     
 app = FastAPI(title="Log Analyzer Agent")
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -62,7 +73,7 @@ async def analyze_log(file: UploadFile = File(...)):
     logT = content.decode("utf-8",errors="ignore")
     if not logT.strip():
         return JSONResponse({"error": "Empty file"}, status_code=400)
-    info = aLog(logT)
+    info = await aLog(logT)
 
     return {"analysis":info}
    except Exception as e:
@@ -70,11 +81,20 @@ async def analyze_log(file: UploadFile = File(...)):
     
 @app.get("/health")
 async def health_check():
-    api_key_set = bool(os.getenv("OPENAI_API_KEY"))
+    api_key_set = bool(os.getenv("GOOGLE_API_KEY"))
     return {
         "status": "healthy",
-        "openai_api_key_configured": api_key_set
+        "google_api_key_configured": api_key_set
     }
+
+# Serve static files explicitly to avoid route conflicts
+@app.get("/style.css")
+async def get_css():
+    return FileResponse("style.css", media_type="text/css")
+
+@app.get("/index.js")
+async def get_js():
+    return FileResponse("index.js", media_type="application/javascript")
 
 if __name__ == "__main__":
     import uvicorn

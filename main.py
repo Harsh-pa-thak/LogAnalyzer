@@ -53,3 +53,18 @@ async def root():
         return f.read()
 
 
+@app.post("/analyze")
+async def analyze_log(file: UploadFile = File(...)):
+   if not file.filename.endswith(".txt"):
+    return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
+   try:
+    content= await file.read()
+    logT = content.decode("utf-8",errors="ignore")
+    if not logT.strip():
+        return JSONResponse({"error": "Empty file"}, status_code=400)
+    info = analyze_log(logT)
+    return {"analysis":info}
+   except Exception as e:
+    return JSONResponse({"error": str(e)}, status_code=500)
+    
+    

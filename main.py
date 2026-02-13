@@ -100,7 +100,7 @@ async def get_js():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://serverloganalyzer.netlify.app"
+        "https://logaiapp.netlify.app"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],

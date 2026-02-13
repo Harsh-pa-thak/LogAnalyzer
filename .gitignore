@@ -17,3 +17,6 @@ env/
 
 # System
 .DS_Store
+
+#others
+todo.txt

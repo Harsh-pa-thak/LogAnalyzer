@@ -97,7 +97,7 @@ async function uploadLog() {
     formData.append("file", file);
 
     try {
-        const response = await fetch("/analyze", {
+        const response = await fetch('https://loganalyzer-4vu8.onrender.com/analyze', {
             method: "POST",
             body: formData
         });

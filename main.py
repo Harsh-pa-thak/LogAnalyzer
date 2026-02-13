@@ -1,4 +1,5 @@
 from fastapi import FastAPI,UploadFile,File
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse,HTMLResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -95,6 +96,17 @@ async def get_css():
 @app.get("/index.js")
 async def get_js():
     return FileResponse("index.js", media_type="application/javascript")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://serverloganalyzer.netlify.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
+
 
 if __name__ == "__main__":
     import uvicorn

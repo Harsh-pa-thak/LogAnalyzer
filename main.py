@@ -5,7 +5,6 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import os
 from langchain_core.prompts import PromptTemplate
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 load_dotenv()
@@ -17,7 +16,7 @@ Analyze the following application logs.
 
 1. Identify the main errors or failures.
 2. Explain the likely root cause in simple terms.
-3. Suggest practical next steps to fix or investigate.
+3. Suggest practical neengineerxt steps to fix or investigate.
 4. Mention any suspicious patterns or repeated issues.
 
 Logs:
@@ -29,33 +28,21 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.2,
     model="gemini-flash-latest"
 )
-def splitLog(log_data:str):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2000,
-        chunk_overlap=200
-    )
-    return splitter.split_text(log_data)
-
 async def aLog(log_data:str):
-    c = splitLog(log_data)
-    combined=[]
-    for chunk in c:
-        fpt=prompt_template.format(log_data=chunk)
-        result = await llm.ainvoke(fpt)
-        
-        content = result.content
-        if isinstance(content, list):
-            # Extract text from list of content parts
-            text_parts = []
-            for part in content:
-                if isinstance(part, dict) and "text" in part:
-                     text_parts.append(part["text"])
-                elif isinstance(part, str):
-                    text_parts.append(part)
-            combined.append("".join(text_parts))
-        else:
-            combined.append(str(content))
-    return "\n\n".join(combined)
+    fpt = prompt_template.format(log_data=log_data)
+    result = await llm.ainvoke(fpt)
+
+    content = result.content
+    if isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+            elif isinstance(part, str):
+                text_parts.append(part)
+        return "".join(text_parts)
+    else:
+        return str(content)
     
 app = FastAPI(title="Log Analyzer Agent")
 

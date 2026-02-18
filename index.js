@@ -8,9 +8,7 @@ const appLoader = document.getElementById("appLoader");
 const btnText = analyzeBtn.querySelector(".btn-text");
 const spinner = analyzeBtn.querySelector(".spinner");
 
-// Initialize App
 window.addEventListener("DOMContentLoaded", () => {
-    // Configure Marked to use Highlight.js
     marked.setOptions({
         highlight: function (code, lang) {
             if (lang && hljs.getLanguage(lang)) {

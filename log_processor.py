@@ -9,6 +9,26 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 
+# Generic patterns that match across all log types
+LOG_PATTERNS = {
+    "error": re.compile(
+        r"(error|fail|fatal|panic|exception|traceback|crashed|abort|segfault"
+        r"|ENOMEM|not enough memory|oom[_-]|kill process|out of memory)",
+        re.IGNORECASE,
+    ),
+    "warning": re.compile(
+        r"(warn|deprecated|timeout|retry|refused|denied|unreachable"
+        r"|degraded|slow|latency|overload|backoff)",
+        re.IGNORECASE,
+    ),
+    "critical": re.compile(
+        r"(critical|emergency|alert|kernel.*bug|hardware error"
+        r"|data loss|corruption|unrecoverable)",
+        re.IGNORECASE,
+    ),
+}
+
+
 @dataclass
 class ProcessedLog:
     """Result of preprocessing a raw log file."""

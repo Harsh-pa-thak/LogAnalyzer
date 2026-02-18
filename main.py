@@ -31,10 +31,10 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.2,
     model="gemini-flash-latest"
 )
-async def aLog(log_data:str):
-    fpt = prompt_template.format(log_data=log_data)
-    result = await llm.ainvoke(fpt)
 
+
+def _extract_text(result) -> str:
+    """Extract text from LLM response (handles list and string formats)."""
     content = result.content
     if isinstance(content, list):
         text_parts = []
@@ -44,9 +44,83 @@ async def aLog(log_data:str):
             elif isinstance(part, str):
                 text_parts.append(part)
         return "".join(text_parts)
-    else:
-        return str(content)
-    
+    return str(content)
+
+
+async def aLog(log_data: str):
+    fpt = prompt_template.format(log_data=log_data)
+    result = await llm.ainvoke(fpt)
+    return _extract_text(result)
+
+
+def _sse_event(data: dict) -> str:
+    """Format a dict as an SSE data line."""
+    return f"data: {json.dumps(data)}\n\n"
+
+
+async def _stream_analysis(log_text: str):
+    """SSE generator: preprocess → chunk → analyze → synthesize."""
+    # Stage 1: Preprocessing
+    yield _sse_event({"stage": "preprocessing", "message": "Preprocessing log file..."})
+    processed = preprocess_log(log_text)
+    yield _sse_event({
+        "stage": "preprocessed",
+        "stats": processed.summary_stats,
+        "message": f"Preprocessed {processed.original_line_count} lines",
+    })
+
+    # Stage 2: Chunking
+    chunks = split_into_chunks(processed.processed_text)
+    total_chunks = len(chunks)
+    yield _sse_event({
+        "stage": "chunking",
+        "total_chunks": total_chunks,
+        "message": f"Split into {total_chunks} chunks for analysis",
+    })
+
+    # Stage 3: Analyze each chunk
+    chunk_results = []
+    for i, chunk in enumerate(chunks, 1):
+        yield _sse_event({
+            "stage": "analyzing",
+            "chunk_index": i,
+            "total_chunks": total_chunks,
+            "message": f"Analyzing chunk {i}/{total_chunks}...",
+        })
+        prompt = CHUNK_PROMPT.format(
+            chunk_index=i, total_chunks=total_chunks, chunk_text=chunk,
+        )
+        result = await llm.ainvoke(prompt)
+        analysis = _extract_text(result)
+        chunk_results.append(analysis)
+        yield _sse_event({
+            "stage": "chunk_done",
+            "chunk_index": i,
+            "total_chunks": total_chunks,
+            "result": analysis,
+        })
+
+    # Stage 4: Synthesize all chunk analyses
+    yield _sse_event({"stage": "synthesizing", "message": "Synthesizing final report..."})
+    combined = "\n\n---\n\n".join(
+        [f"### Chunk {i+1} Analysis\n{r}" for i, r in enumerate(chunk_results)]
+    )
+    stats_str = json.dumps(processed.summary_stats, indent=2)
+    synth_prompt = SYNTHESIS_PROMPT.format(
+        total_lines=processed.original_line_count,
+        total_chunks=total_chunks,
+        chunk_analyses=combined,
+        stats=stats_str,
+    )
+    synth_result = await llm.ainvoke(synth_prompt)
+    final_report = _extract_text(synth_result)
+
+    yield _sse_event({
+        "stage": "complete",
+        "result": final_report,
+        "stats": processed.summary_stats,
+    })
+
 app = FastAPI(title="Log Analyzer Agent")
 
 @app.get("/", response_class=HTMLResponse)

@@ -81,3 +81,59 @@ def _compress_repetitive(lines: list[str], threshold: int = 5) -> list[str]:
         i += run_length
 
     return compressed
+
+
+def preprocess_log(raw_text: str) -> ProcessedLog:
+    """
+    Preprocess a raw log file for LLM analysis.
+    Works with any log format: kernel, app, deployment, syslog, etc.
+    """
+    lines = raw_text.strip().splitlines()
+    original_count = len(lines)
+
+    # Categorize every line
+    categorized: dict[str, list[str]] = {
+        "critical": [], "error": [], "warning": [], "info": [],
+    }
+    for line in lines:
+        cat = _categorize_line(line)
+        categorized[cat].append(line)
+
+    # Build stats
+    stats = {
+        "total_lines": original_count,
+        "critical": len(categorized["critical"]),
+        "errors": len(categorized["error"]),
+        "warnings": len(categorized["warning"]),
+        "info": len(categorized["info"]),
+    }
+
+    # Assemble output: errors/warnings first (full), then compressed info
+    output_parts = []
+    output_parts.append(f"=== LOG SUMMARY: {original_count} lines ===")
+    output_parts.append(
+        f"Critical: {stats['critical']} | Errors: {stats['errors']} "
+        f"| Warnings: {stats['warnings']} | Info: {stats['info']}"
+    )
+    output_parts.append("")
+
+    # Critical & errors — always include fully
+    for cat in ("critical", "error", "warning"):
+        if categorized[cat]:
+            output_parts.append(f"--- {cat.upper()} LINES ({len(categorized[cat])}) ---")
+            output_parts.extend(categorized[cat])
+            output_parts.append("")
+
+    # Info — compress repetitive patterns
+    compressed_info = _compress_repetitive(categorized["info"])
+    output_parts.append(f"--- INFO LINES (compressed from {len(categorized['info'])} to {len(compressed_info)}) ---")
+    output_parts.extend(compressed_info)
+
+    processed_text = "\n".join(output_parts)
+
+    return ProcessedLog(
+        original_line_count=original_count,
+        processed_text=processed_text,
+        categories={k: len(v) for k, v in categorized.items()},
+        summary_stats=stats,
+    )

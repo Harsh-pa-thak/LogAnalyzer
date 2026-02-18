@@ -160,40 +160,37 @@ def split_into_chunks(text: str, chunk_size: int = 60000, overlap: int = 500) ->
     )
     return splitter.split_text(text)
 
-
 # Prompt for analyzing each chunk
-CHUNK_PROMPT = """You are a senior site reliability engineer.
-
-Analyze this section of application logs (chunk {chunk_index} of {total_chunks}).
-
-Focus on:
-1. Errors, failures, or anomalies in this section
-2. Patterns that indicate systemic issues
-3. Any security or performance concerns
+CHUNK_PROMPT = """You are a senior SRE. Analyze this log section (chunk {chunk_index} of {total_chunks}).
 
 Log Section:
 {chunk_text}
 
-Provide a concise analysis of THIS section only. Use markdown formatting."""
+List ONLY the problems found as bullet points (error names, codes, timestamps).
+Keep it under 100 words. No fluff."""
 
 
 # Prompt for synthesizing all chunk analyses into a final report
-SYNTHESIS_PROMPT = """You are a senior site reliability engineer.
+SYNTHESIS_PROMPT = """You are a senior SRE. You analyzed {total_lines} lines of logs in {total_chunks} chunks.
 
-You have analyzed a large log file ({total_lines} lines) in {total_chunks} sections.
-Here are the individual section analyses:
-
+Section analyses:
 {chunk_analyses}
 
 Log Statistics:
 {stats}
 
-Now create a UNIFIED analysis report that:
-1. Identifies the main errors or failures across all sections
-2. Explains the likely root cause in simple terms
-3. Suggests practical next steps to fix or investigate
-4. Mentions any suspicious patterns or repeated issues
-5. Provides a severity assessment (Critical / Warning / Informational)
+Write a SHORT report with EXACTLY 3 sections:
 
-Write a comprehensive, well-structured report using markdown.
-Use headers, bullet points, and code blocks where appropriate."""
+## What Went Wrong
+Bullet each distinct problem. Be specific (error names, codes, timestamps). 1-2 lines per bullet max.
+
+## What To Do Next
+1-2 actionable lines. Tell the developer exactly what to fix first.
+
+## Final Verdict
+One short paragraph. Critical, warning, or fine? Overall health?
+
+STRICT RULES:
+- ONLY these 3 sections, nothing else
+- No intro, no summary table, no severity matrix
+- Under 300 words total"""

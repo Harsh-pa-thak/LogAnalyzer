@@ -235,6 +235,17 @@ function handleSSEEvent(data) {
             btnText.textContent = "Synthesizing...";
             break;
 
+        case "error":
+            progressBar.style.width = "100%";
+            progressBar.style.background = "#ef4444";
+            progressMessage.textContent = data.message;
+            resultsContent.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">
+                <h3>⚠️ Analysis Failed</h3>
+                <p>${data.message}</p>
+            </div>`;
+            setLoading(false);
+            break;
+
         case "complete":
             setStage("complete");
             progressBar.style.width = "100%";

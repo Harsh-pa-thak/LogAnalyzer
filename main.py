@@ -90,8 +90,16 @@ async def _stream_analysis(log_text: str):
         prompt = CHUNK_PROMPT.format(
             chunk_index=i, total_chunks=total_chunks, chunk_text=chunk,
         )
-        result = await llm.ainvoke(prompt)
-        analysis = _extract_text(result)
+        try:
+            result = await llm.ainvoke(prompt)
+            analysis = _extract_text(result)
+        except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                yield _sse_event({"stage": "error", "message": "Rate limit hit. Please wait a minute and try again."})
+            else:
+                yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
+            return
         chunk_results.append(analysis)
         yield _sse_event({
             "stage": "chunk_done",
@@ -112,8 +120,16 @@ async def _stream_analysis(log_text: str):
         chunk_analyses=combined,
         stats=stats_str,
     )
-    synth_result = await llm.ainvoke(synth_prompt)
-    final_report = _extract_text(synth_result)
+    try:
+        synth_result = await llm.ainvoke(synth_prompt)
+        final_report = _extract_text(synth_result)
+    except Exception as e:
+        error_msg = str(e)
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            yield _sse_event({"stage": "error", "message": "Rate limit hit. Please wait a minute and try again."})
+        else:
+            yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
+        return
 
     yield _sse_event({
         "stage": "complete",
@@ -183,7 +199,9 @@ async def get_js():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://logaiapp.netlify.app"
+        "https://logaiapp.netlify.app",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],

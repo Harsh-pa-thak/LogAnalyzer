@@ -139,12 +139,19 @@ def preprocess_log(raw_text: str) -> ProcessedLog:
     )
 
 
-def split_into_chunks(text: str, chunk_size: int = 8000, overlap: int = 200) -> list[str]:
+def split_into_chunks(text: str, chunk_size: int = 60000, overlap: int = 500) -> list[str]:
     """
     Split preprocessed log text into LLM-friendly chunks.
-    Uses LangChain text splitter for intelligent boundaries.
+    Uses LangChain text splitter. Auto-adjusts to cap at MAX_CHUNKS.
     """
     from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+    MAX_CHUNKS = 8  # Cap to avoid excessive API calls
+
+    # Auto-increase chunk_size if text would produce too many chunks
+    text_len = len(text)
+    if text_len / chunk_size > MAX_CHUNKS:
+        chunk_size = (text_len // MAX_CHUNKS) + 1000
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,

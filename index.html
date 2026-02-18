@@ -85,6 +85,51 @@
                     </div>
                 </section>
 
+                <!-- Progress Tracker -->
+                <section class="progress-section hidden" id="progressSection">
+                    <div class="card progress-card">
+                        <div class="progress-stages">
+                            <div class="stage" id="stagePreprocess" data-stage="preprocess">
+                                <span class="stage-dot"></span>
+                                <span class="stage-label">Preprocess</span>
+                            </div>
+                            <div class="stage-line"></div>
+                            <div class="stage" id="stageAnalyze" data-stage="analyze">
+                                <span class="stage-dot"></span>
+                                <span class="stage-label">Analyze</span>
+                            </div>
+                            <div class="stage-line"></div>
+                            <div class="stage" id="stageSynthesize" data-stage="synthesize">
+                                <span class="stage-dot"></span>
+                                <span class="stage-label">Synthesize</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <div class="progress-message" id="progressMessage">Preparing...</div>
+                    </div>
+                    <!-- Log Stats -->
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <span class="stat-value" id="statLines">—</span>
+                            <span class="stat-label">Total Lines</span>
+                        </div>
+                        <div class="stat-card stat-critical">
+                            <span class="stat-value" id="statCritical">—</span>
+                            <span class="stat-label">Critical</span>
+                        </div>
+                        <div class="stat-card stat-error">
+                            <span class="stat-value" id="statErrors">—</span>
+                            <span class="stat-label">Errors</span>
+                        </div>
+                        <div class="stat-card stat-warning">
+                            <span class="stat-value" id="statWarnings">—</span>
+                            <span class="stat-label">Warnings</span>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="results-section">
                     <div class="card results-card">
                         <div class="card-header">

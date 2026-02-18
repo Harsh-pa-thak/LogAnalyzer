@@ -143,6 +143,25 @@ async def analyze_log(file: UploadFile = File(...)):
     return {"analysis":info}
    except Exception as e:
     return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/analyze-stream")
+async def analyze_log_stream(file: UploadFile = File(...)):
+    """SSE endpoint for chunked analysis of large log files."""
+    if not file.filename.endswith(".txt"):
+        return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
+    try:
+        content = await file.read()
+        log_text = content.decode("utf-8", errors="ignore")
+        if not log_text.strip():
+            return JSONResponse({"error": "Empty file"}, status_code=400)
+        return StreamingResponse(
+            _stream_analysis(log_text),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
     
 @app.get("/health")
 async def health_check():

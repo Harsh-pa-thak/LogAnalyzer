@@ -179,12 +179,11 @@ async def analyze_log_stream(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
     
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    api_key_set = bool(os.getenv("GOOGLE_API_KEY"))
     return {
         "status": "healthy",
-        "google_api_key_configured": api_key_set
+        "google_api_key_configured": bool(os.getenv("GOOGLE_API_KEY"))
     }
 
 # Serve static files explicitly to avoid route conflicts

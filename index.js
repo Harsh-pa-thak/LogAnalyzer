@@ -323,6 +323,9 @@ async function uploadLog() {
     resetProgress();
 
     progressSection.classList.remove("hidden");
+    document.getElementById("statsSection").classList.add("hidden");
+    document.getElementById("copyBtn").style.display = "none";
+    document.getElementById("downloadBtn").style.display = "none";
     emptyState.classList.add("hidden");
     resultsContent.innerHTML = "";
     resultsContent.classList.remove("hidden");
@@ -387,33 +390,64 @@ function handleSSEEvent(data) {
         case "preprocessing":
             setStage("preprocess");
             progressBar.style.width = "10%";
+            progressMessage.textContent = "Preprocessing log file...";
             break;
 
         case "preprocessed":
             progressBar.style.width = "20%";
+            progressMessage.textContent = "Preprocessing complete. Splitting into chunks...";
             updateStats(data.stats);
+            // Reveal the stats grid
+            document.getElementById("statsSection").classList.remove("hidden");
             break;
 
-        case "analyzing":
+        case "chunking":
+            progressBar.style.width = "22%";
+            progressMessage.textContent = data.message || "Splitting into chunks...";
+            break;
+
+        case "analyzing": {
             setStage("analyze");
             const p = 25 + (data.chunk_index / data.total_chunks) * 50;
             progressBar.style.width = p + "%";
+            progressMessage.textContent = data.message || `Analyzing chunk ${data.chunk_index}/${data.total_chunks}...`;
             break;
+        }
+
+        case "chunk_done": {
+            // Stream each chunk result live into the results panel as it arrives
+            const chunkHeader = document.createElement("div");
+            chunkHeader.className = "chunk-header";
+            chunkHeader.textContent = `Chunk ${data.chunk_index}/${data.total_chunks} Analysis`;
+
+            const chunkBody = document.createElement("div");
+            chunkBody.className = "chunk-body markdown-body";
+            chunkBody.innerHTML = marked.parse(data.result);
+
+            resultsContent.appendChild(chunkHeader);
+            resultsContent.appendChild(chunkBody);
+            break;
+        }
 
         case "synthesizing":
             setStage("synthesize");
             progressBar.style.width = "80%";
+            progressMessage.textContent = data.message || "Synthesizing final report...";
             break;
 
         case "complete":
             setStage("complete");
             progressBar.style.width = "100%";
+            progressMessage.textContent = "Analysis complete.";
             resultsContent.innerHTML = marked.parse(data.result);
             updateStats(data.stats);
+            // Show copy & download buttons
+            document.getElementById("copyBtn").style.display = "flex";
+            document.getElementById("downloadBtn").style.display = "flex";
             break;
 
         case "error":
-            resultsContent.innerHTML = `<div style="color:red;">${data.message}</div>`;
+            resultsContent.innerHTML = `<div style="color:#ef4444;padding:16px 0;"><strong>Error:</strong> ${data.message}</div>`;
             break;
     }
 }
@@ -428,4 +462,26 @@ function setLoading(isLoading) {
 analyzeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     uploadLog();
+});
+
+// Copy report to clipboard
+document.getElementById("copyBtn").addEventListener("click", () => {
+    const text = resultsContent.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById("copyBtn");
+        btn.title = "Copied!";
+        setTimeout(() => { btn.title = "Copy report"; }, 2000);
+    });
+});
+
+// Download report as markdown file
+document.getElementById("downloadBtn").addEventListener("click", () => {
+    const text = resultsContent.innerText;
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "logai-report.md";
+    a.click();
+    URL.revokeObjectURL(url);
 });

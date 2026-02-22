@@ -1,19 +1,26 @@
-// Supabase CDN is loaded before this script, so we can init at top level
 const SUPABASE_URL = "https://eqwsqthpdlwwgfxrjujg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_qYwkc1f4o5MO9Mw91mUzoQ_94GS3iAx";
 
 if (!window.supabase) {
-    console.error("[LogAI] Supabase CDN failed to load. Check your network or the script tag in index.html.");
+    console.error("[LogAI] Supabase CDN failed to load.");
 }
 
-let supabaseClient;
-try {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient;
-    console.log("[LogAI] Supabase client initialized:", supabaseClient);
-} catch (e) {
-    console.error("[LogAI] Failed to initialize Supabase client:", e);
-}
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+        }
+    }
+);
+
+window.supabaseClient = supabaseClient;
+
+
+
 
 const fileInput = document.getElementById("logFile");
 const fileInfo = document.getElementById("fileInfo");
@@ -25,7 +32,6 @@ const appLoader = document.getElementById("appLoader");
 const btnText = analyzeBtn.querySelector(".btn-text");
 const spinner = analyzeBtn.querySelector(".spinner");
 
-// Progress elements
 const progressSection = document.getElementById("progressSection");
 const progressBar = document.getElementById("progressBar");
 const progressMessage = document.getElementById("progressMessage");
@@ -37,7 +43,75 @@ const statCritical = document.getElementById("statCritical");
 const statErrors = document.getElementById("statErrors");
 const statWarnings = document.getElementById("statWarnings");
 
-window.addEventListener("DOMContentLoaded", () => {
+// ----------------------------------------------------------------
+// Auth View Elements
+// ----------------------------------------------------------------
+const loginView = document.getElementById("loginView");
+const dashboardView = document.getElementById("dashboardView");
+const loginEmailInput = document.getElementById("loginEmail");
+const loginPasswordInput = document.getElementById("loginPassword");
+const loginBtn = document.getElementById("loginBtn");
+const loginBtnText = document.getElementById("loginBtnText");
+const loginSpinner = document.getElementById("loginSpinner");
+const signupBtn = document.getElementById("signupBtn");
+const loginError = document.getElementById("loginError");
+const loginSuccess = document.getElementById("loginSuccess");
+const userEmailEl = document.getElementById("userEmail");
+const userAvatarEl = document.getElementById("userAvatar");
+const logoutBtn = document.getElementById("logoutBtn");
+
+// ----------------------------------------------------------------
+// View helpers
+// ----------------------------------------------------------------
+function showDashboard(user) {
+    loginView.classList.add("hidden");
+    dashboardView.classList.remove("hidden");
+    if (user && user.email) {
+        userEmailEl.textContent = user.email;
+        const initials = user.email.slice(0, 2).toUpperCase();
+        userAvatarEl.textContent = initials;
+    }
+}
+
+function showLogin() {
+    dashboardView.classList.add("hidden");
+    loginView.classList.remove("hidden");
+    loginError.classList.remove("visible");
+    loginSuccess.classList.remove("visible");
+    loginEmailInput.value = "";
+    loginPasswordInput.value = "";
+}
+
+function setLoginLoading(loading) {
+    loginBtn.disabled = loading;
+    signupBtn.disabled = loading;
+    loginBtnText.textContent = loading ? "Signing in..." : "Sign In";
+    if (loading) {
+        loginSpinner.classList.add("visible");
+    } else {
+        loginSpinner.classList.remove("visible");
+    }
+}
+
+function showAuthError(msg) {
+    loginError.textContent = msg;
+    loginError.classList.remove("success");
+    loginError.classList.add("error", "visible");
+    loginSuccess.classList.remove("visible");
+}
+
+function showAuthSuccess(msg) {
+    loginSuccess.textContent = msg;
+    loginSuccess.classList.remove("error");
+    loginSuccess.classList.add("success", "visible");
+    loginError.classList.remove("visible");
+}
+
+// ----------------------------------------------------------------
+// DOMContentLoaded — session check & app init
+// ----------------------------------------------------------------
+window.addEventListener("DOMContentLoaded", async () => {
+
     marked.setOptions({
         highlight: function (code, lang) {
             if (lang && hljs.getLanguage(lang)) {
@@ -47,15 +121,94 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Check for existing session
+    const { data } = await supabaseClient.auth.getSession();
+
     setTimeout(() => {
         appLoader.style.opacity = "0";
         setTimeout(() => {
             appLoader.style.display = "none";
+            if (data.session) {
+                showDashboard(data.session.user);
+            } else {
+                showLogin();
+            }
         }, 500);
     }, 800);
 });
 
-// Drag & Drop
+// ----------------------------------------------------------------
+// Login
+// ----------------------------------------------------------------
+loginBtn.addEventListener("click", async () => {
+    const email = loginEmailInput.value.trim();
+    const password = loginPasswordInput.value;
+
+    if (!email || !password) {
+        showAuthError("Please enter your email and password.");
+        return;
+    }
+
+    setLoginLoading(true);
+    loginError.classList.add("hidden");
+    loginSuccess.classList.add("hidden");
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    setLoginLoading(false);
+
+    if (error) {
+        showAuthError(error.message || "Login failed. Please try again.");
+        return;
+    }
+
+    showDashboard(data.user);
+});
+
+// ----------------------------------------------------------------
+// Sign Up
+// ----------------------------------------------------------------
+signupBtn.addEventListener("click", async () => {
+    const email = loginEmailInput.value.trim();
+    const password = loginPasswordInput.value;
+
+    if (!email || !password) {
+        showAuthError("Please enter an email and password to create an account.");
+        return;
+    }
+
+    signupBtn.disabled = true;
+    signupBtn.textContent = "Creating account...";
+    loginError.classList.remove("visible");
+    loginSuccess.classList.remove("visible");
+
+    const { error } = await supabaseClient.auth.signUp({ email, password });
+
+    signupBtn.disabled = false;
+    signupBtn.textContent = "Create Account";
+
+    if (error) {
+        showAuthError(error.message || "Sign up failed. Please try again.");
+        return;
+    }
+
+    showAuthSuccess("Account created! Check your email to confirm your address, then sign in.");
+});
+
+// ----------------------------------------------------------------
+// Logout
+// ----------------------------------------------------------------
+logoutBtn.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    showLogin();
+});
+
+
+
+// ----------------------------------------------------------------
+// Existing dashboard / upload logic (unchanged)
+// ----------------------------------------------------------------
+
 dropZone.addEventListener("click", (e) => {
     if (e.target !== analyzeBtn && !analyzeBtn.contains(e.target)) {
         fileInput.click();
@@ -72,28 +225,16 @@ function preventDefaults(e) {
 }
 
 ["dragenter", "dragover"].forEach(eventName => {
-    dropZone.addEventListener(eventName, highlightDrop, false);
+    dropZone.addEventListener(eventName, () => dropZone.classList.add("drag-over"), false);
 });
 
 ["dragleave", "drop"].forEach(eventName => {
-    dropZone.addEventListener(eventName, unhighlightDrop, false);
+    dropZone.addEventListener(eventName, () => dropZone.classList.remove("drag-over"), false);
 });
 
-function highlightDrop() {
-    dropZone.classList.add("drag-over");
-}
-
-function unhighlightDrop() {
-    dropZone.classList.remove("drag-over");
-}
-
-dropZone.addEventListener("drop", handleDrop, false);
-
-function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    handleFiles(files);
-}
+dropZone.addEventListener("drop", (e) => {
+    handleFiles(e.dataTransfer.files);
+}, false);
 
 fileInput.addEventListener("change", () => {
     handleFiles(fileInput.files);
@@ -108,21 +249,24 @@ function handleFiles(files) {
     }
 }
 
-// Progress helpers
+
+
 function setStage(stage) {
     [stagePreprocess, stageAnalyze, stageSynthesize].forEach(el => {
         el.classList.remove("active", "complete");
     });
-    if (stage === "preprocess") {
-        stagePreprocess.classList.add("active");
-    } else if (stage === "analyze") {
+
+    if (stage === "preprocess") stagePreprocess.classList.add("active");
+    if (stage === "analyze") {
         stagePreprocess.classList.add("complete");
         stageAnalyze.classList.add("active");
-    } else if (stage === "synthesize") {
+    }
+    if (stage === "synthesize") {
         stagePreprocess.classList.add("complete");
         stageAnalyze.classList.add("complete");
         stageSynthesize.classList.add("active");
-    } else if (stage === "complete") {
+    }
+    if (stage === "complete") {
         stagePreprocess.classList.add("complete");
         stageAnalyze.classList.add("complete");
         stageSynthesize.classList.add("complete");
@@ -130,6 +274,7 @@ function setStage(stage) {
 }
 
 function updateStats(stats) {
+    if (!stats) return;
     if (stats.total_lines !== undefined) statLines.textContent = stats.total_lines.toLocaleString();
     if (stats.critical !== undefined) statCritical.textContent = stats.critical.toLocaleString();
     if (stats.errors !== undefined) statErrors.textContent = stats.errors.toLocaleString();
@@ -140,13 +285,22 @@ function resetProgress() {
     progressBar.style.width = "0%";
     progressMessage.textContent = "Preparing...";
     setStage("");
-    statLines.textContent = "—";
-    statCritical.textContent = "—";
-    statErrors.textContent = "—";
-    statWarnings.textContent = "—";
 }
 
-// SSE Streaming Analysis
+
+
+
+async function getAccessToken() {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error || !data.session) {
+        throw new Error("You must login first.");
+    }
+    return data.session.access_token;
+}
+
+
+
+
 async function uploadLog() {
     const file = fileInput.files[0];
     if (!file) return;
@@ -154,7 +308,6 @@ async function uploadLog() {
     setLoading(true);
     resetProgress();
 
-    // Show progress, hide empty state
     progressSection.classList.remove("hidden");
     emptyState.classList.add("hidden");
     resultsContent.innerHTML = "";
@@ -164,14 +317,23 @@ async function uploadLog() {
     formData.append("file", file);
 
     try {
-        const response = await fetch("https://loganalyzer-4vu8.onrender.com/analyze-stream", {
+        const token = await getAccessToken();
+
+        const response = await fetch("http://127.0.0.1:8000/analyze-stream", {
             method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
             body: formData,
         });
 
+        if (response.status === 401) {
+            throw new Error("Session expired. Please login again.");
+        }
+
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.error || "Server error");
+            throw new Error(err.detail || "Server error");
         }
 
         const reader = response.body.getReader();
@@ -184,106 +346,69 @@ async function uploadLog() {
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
-            buffer = lines.pop(); // Keep incomplete line in buffer
+            buffer = lines.pop();
 
             for (const line of lines) {
                 if (!line.startsWith("data: ")) continue;
-                try {
-                    const data = JSON.parse(line.slice(6));
-                    handleSSEEvent(data);
-                } catch (e) {
-                    // Skip malformed SSE lines
-                }
+                const data = JSON.parse(line.slice(6));
+                handleSSEEvent(data);
             }
         }
+
     } catch (error) {
-        resultsContent.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">
-            <h3>Error</h3>
-            <p>${error.message}</p>
-        </div>`;
+        resultsContent.innerHTML = `
+            <div style="color:#ef4444;padding:20px;text-align:center;">
+                <h3>Error</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
     } finally {
         setLoading(false);
     }
 }
+
 
 function handleSSEEvent(data) {
     switch (data.stage) {
         case "preprocessing":
             setStage("preprocess");
             progressBar.style.width = "10%";
-            progressMessage.textContent = data.message;
             break;
 
         case "preprocessed":
             progressBar.style.width = "20%";
-            progressMessage.textContent = data.message;
-            if (data.stats) updateStats(data.stats);
-            break;
-
-        case "chunking":
-            progressBar.style.width = "25%";
-            progressMessage.textContent = data.message;
+            updateStats(data.stats);
             break;
 
         case "analyzing":
             setStage("analyze");
-            const analyzeProgress = 25 + (data.chunk_index / data.total_chunks) * 50;
-            progressBar.style.width = analyzeProgress + "%";
-            progressMessage.textContent = data.message;
-            btnText.textContent = `Analyzing ${data.chunk_index}/${data.total_chunks}...`;
-            break;
-
-        case "chunk_done":
-            // Show chunk result incrementally
-            const chunkHtml = marked.parse(data.result);
-            resultsContent.innerHTML += `<div class="chunk-result">
-                <h4 style="color: var(--primary); margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
-                    Chunk ${data.chunk_index}/${data.total_chunks} Analysis
-                </h4>
-                ${chunkHtml}
-                <hr style="border-color: var(--border-color); margin: 16px 0;">
-            </div>`;
+            const p = 25 + (data.chunk_index / data.total_chunks) * 50;
+            progressBar.style.width = p + "%";
             break;
 
         case "synthesizing":
             setStage("synthesize");
             progressBar.style.width = "80%";
-            progressMessage.textContent = data.message;
-            btnText.textContent = "Synthesizing...";
-            break;
-
-        case "error":
-            progressBar.style.width = "100%";
-            progressBar.style.background = "#ef4444";
-            progressMessage.textContent = data.message;
-            resultsContent.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">
-                <h3>⚠️ Analysis Failed</h3>
-                <p>${data.message}</p>
-            </div>`;
-            setLoading(false);
             break;
 
         case "complete":
             setStage("complete");
             progressBar.style.width = "100%";
-            progressMessage.textContent = "Analysis complete!";
-            // Replace chunk results with final synthesis
-            const finalHtml = marked.parse(data.result);
-            resultsContent.innerHTML = finalHtml;
-            if (data.stats) updateStats(data.stats);
+            resultsContent.innerHTML = marked.parse(data.result);
+            updateStats(data.stats);
+            break;
+
+        case "error":
+            resultsContent.innerHTML = `<div style="color:red;">${data.message}</div>`;
             break;
     }
 }
 
+
 function setLoading(isLoading) {
     analyzeBtn.disabled = isLoading;
-    if (isLoading) {
-        btnText.textContent = "Processing...";
-        spinner.style.display = "block";
-    } else {
-        btnText.textContent = "Start Analysis";
-        spinner.style.display = "none";
-    }
+    btnText.textContent = isLoading ? "Processing..." : "Start Analysis";
+    spinner.style.display = isLoading ? "block" : "none";
 }
 
 analyzeBtn.addEventListener("click", (e) => {

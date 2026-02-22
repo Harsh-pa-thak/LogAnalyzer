@@ -8,6 +8,7 @@ import requests
 import os
 import json
 import asyncio
+from supabase import create_client, Client
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTHESIS_PROMPT
@@ -26,6 +27,17 @@ if not SUPABASE_URL:
 
 SUPABASE_ISSUER = f"{SUPABASE_URL}/auth/v1"
 SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json"
+
+# =========================
+# SUPABASE SERVICE CLIENT
+# =========================
+
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+if not SUPABASE_SERVICE_ROLE_KEY:
+    print("[WARNING] SUPABASE_SERVICE_ROLE_KEY not set — history saving disabled")
+    supabase_admin = None
+else:
+    supabase_admin: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 
 def get_current_user(credentials=Depends(security)):
@@ -111,7 +123,7 @@ def _sse_event(data: dict) -> str:
     return f"data: {json.dumps(data)}\n\n"
 
 
-async def _stream_analysis(log_text: str):
+async def _stream_analysis(log_text: str, user_id: str = "", file_name: str = ""):
     yield _sse_event({"stage": "preprocessing", "message": "Preprocessing log file..."})
 
     processed = preprocess_log(log_text)
@@ -190,6 +202,21 @@ async def _stream_analysis(log_text: str):
         yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
         return
 
+    # Save analysis to DB (non-blocking — failure does not break stream)
+    if supabase_admin and user_id:
+        try:
+            supabase_admin.table("analyses").insert({
+                "user_id": user_id,
+                "file_name": file_name,
+                "summary": final_report,
+                "total_lines": processed.original_line_count,
+                "critical": processed.summary_stats.get("critical", 0),
+                "errors": processed.summary_stats.get("errors", 0),
+                "warnings": processed.summary_stats.get("warnings", 0),
+            }).execute()
+        except Exception as db_err:
+            print(f"[DB] Failed to save analysis history: {db_err}")
+
     yield _sse_event({
         "stage": "complete",
         "result": final_report,
@@ -243,10 +270,27 @@ async def analyze_log_stream(
         return JSONResponse({"error": "Empty file"}, status_code=400)
 
     return StreamingResponse(
-        _stream_analysis(log_text),
+        _stream_analysis(log_text, user_id=user["sub"], file_name=file.filename),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@app.get("/history")
+async def get_history(user=Depends(get_current_user)):
+    if not supabase_admin:
+        raise HTTPException(status_code=503, detail="History unavailable")
+    try:
+        result = (
+            supabase_admin.table("analyses")
+            .select("id, file_name, summary, total_lines, critical, errors, warnings, created_at")
+            .eq("user_id", user["sub"])
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])

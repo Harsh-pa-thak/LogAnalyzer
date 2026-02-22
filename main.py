@@ -18,10 +18,11 @@ load_dotenv()
 security = HTTPBearer()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
+if not SUPABASE_URL:
+    raise RuntimeError("SUPABASE_URL not configured")
+
 SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/keys"
 SUPABASE_ISSUER = f"{SUPABASE_URL}/auth/v1"
-
-jwks = requests.get(SUPABASE_JWKS_URL).json()
 
 prompt_template = """
 You are a senior site reliability engineer.
@@ -154,7 +155,12 @@ app = FastAPI(title="Log Analyzer Agent")
 def get_current_user(credentials=Depends(security)):
     token = credentials.credentials
 
+    if not SUPABASE_URL:
+        raise HTTPException(status_code=503, detail="Auth system unavailable")
+
     try:
+        jwks = requests.get(SUPABASE_JWKS_URL).json()
+
         payload = jwt.decode(
             token,
             jwks,
@@ -163,6 +169,7 @@ def get_current_user(credentials=Depends(security)):
             issuer=SUPABASE_ISSUER,
         )
         return payload
+
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
@@ -174,7 +181,10 @@ async def root():
 
 
 @app.post("/analyze")
-async def analyze_log(file: UploadFile = File(...)):
+async def analyze_log(
+    file: UploadFile = File(...),
+    user=Depends(get_current_user)
+):
    if not file.filename.endswith(".txt"):
     return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
    try:
@@ -190,7 +200,12 @@ async def analyze_log(file: UploadFile = File(...)):
 
 
 @app.post("/analyze-stream")
-async def analyze_log_stream(file: UploadFile = File(...)):
+async def analyze_log_stream(
+    file: UploadFile = File(...),
+    user=Depends(get_current_user)
+):
+    user_id = user["sub"]
+    print("Authenticated user:", user_id)
     """SSE endpoint for chunked analysis of large log files."""
     if not file.filename.endswith(".txt"):
         return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)

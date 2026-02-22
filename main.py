@@ -1,28 +1,33 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.security import HTTPBearer
 from dotenv import load_dotenv
 import os
 import json
-import asyncio
-from langchain_core.prompts import PromptTemplate
+import requests
+from jose import jwt, jwk
+from jose.utils import base64url_decode
 from langchain_google_genai import ChatGoogleGenerativeAI
 from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTHESIS_PROMPT
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBearer
-from jose import jwt
-import requests
+
 
 load_dotenv()
-security = HTTPBearer()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 if not SUPABASE_URL:
     raise RuntimeError("SUPABASE_URL not configured")
 
-SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/keys"
+SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json"
 SUPABASE_ISSUER = f"{SUPABASE_URL}/auth/v1"
+
+security = HTTPBearer()
+
+try:
+    JWKS = requests.get(SUPABASE_JWKS_URL).json()
+except Exception:
+    JWKS = {"keys": []}
+
 
 prompt_template = """
 You are a senior site reliability engineer.
@@ -31,7 +36,7 @@ Analyze the following application logs.
 
 1. Identify the main errors or failures.
 2. Explain the likely root cause in simple terms.
-3. Suggest practical neengineerxt steps to fix or investigate.
+3. Suggest practical next steps to fix or investigate.
 4. Mention any suspicious patterns or repeated issues.
 
 Logs:
@@ -39,206 +44,227 @@ Logs:
 
 Respond in clear paragraphs. Avoid jargon where possible.
 """
+
 llm = ChatGoogleGenerativeAI(
     temperature=0.2,
     model="gemini-flash-latest"
 )
 
 
+
+
+def get_current_user(credentials=Depends(security)):
+    print("AUTH DEPENDENCY CALLED")
+
+    token = credentials.credentials
+
+    try:
+        header = jwt.get_unverified_header(token)
+        kid = header.get("kid")
+
+        print("RAW TOKEN:", token[:40])
+        print("KID:", kid)
+
+        # Fetch fresh JWKS every request (safe for now)
+        jwks = requests.get(SUPABASE_JWKS_URL).json()
+
+        key = next(
+            (k for k in jwks["keys"] if k["kid"] == kid),
+            None
+        )
+
+        if key is None:
+            raise HTTPException(status_code=401, detail="Invalid token key")
+
+        # 🔥 Construct public key properly
+        public_key = jwk.construct(key)
+
+        # Convert to PEM
+        pem_key = public_key.to_pem().decode("utf-8")
+
+        payload = jwt.decode(
+            token,
+            pem_key,
+            algorithms=["ES256"],
+            issuer=SUPABASE_ISSUER,
+            options={"verify_aud": False},
+        )
+
+        print("Authenticated user:", payload.get("sub"))
+        return payload
+
+    except Exception as e:
+        print("JWT ERROR:", e)
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+
 def _extract_text(result) -> str:
-    """Extract text from LLM response (handles list and string formats)."""
     content = result.content
     if isinstance(content, list):
-        text_parts = []
+        parts = []
         for part in content:
             if isinstance(part, dict) and "text" in part:
-                text_parts.append(part["text"])
+                parts.append(part["text"])
             elif isinstance(part, str):
-                text_parts.append(part)
-        return "".join(text_parts)
+                parts.append(part)
+        return "".join(parts)
     return str(content)
 
 
-async def aLog(log_data: str):
-    fpt = prompt_template.format(log_data=log_data)
-    result = await llm.ainvoke(fpt)
+async def analyze_simple(log_data: str):
+    prompt = prompt_template.format(log_data=log_data)
+    result = await llm.ainvoke(prompt)
     return _extract_text(result)
 
 
 def _sse_event(data: dict) -> str:
-    """Format a dict as an SSE data line."""
     return f"data: {json.dumps(data)}\n\n"
 
 
 async def _stream_analysis(log_text: str):
-    """SSE generator: preprocess → chunk → analyze → synthesize."""
-    # Stage 1: Preprocessing
     yield _sse_event({"stage": "preprocessing", "message": "Preprocessing log file..."})
     processed = preprocess_log(log_text)
+
     yield _sse_event({
         "stage": "preprocessed",
         "stats": processed.summary_stats,
         "message": f"Preprocessed {processed.original_line_count} lines",
     })
 
-    # Stage 2: Chunking
     chunks = split_into_chunks(processed.processed_text)
     total_chunks = len(chunks)
+
     yield _sse_event({
         "stage": "chunking",
         "total_chunks": total_chunks,
-        "message": f"Split into {total_chunks} chunks for analysis",
+        "message": f"Split into {total_chunks} chunks",
     })
 
-    # Stage 3: Analyze each chunk
     chunk_results = []
+
     for i, chunk in enumerate(chunks, 1):
         yield _sse_event({
             "stage": "analyzing",
             "chunk_index": i,
             "total_chunks": total_chunks,
-            "message": f"Analyzing chunk {i}/{total_chunks}...",
         })
+
         prompt = CHUNK_PROMPT.format(
-            chunk_index=i, total_chunks=total_chunks, chunk_text=chunk,
+            chunk_index=i,
+            total_chunks=total_chunks,
+            chunk_text=chunk,
         )
+
         try:
             result = await llm.ainvoke(prompt)
             analysis = _extract_text(result)
-        except Exception as e:
-            error_msg = str(e)
-            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-                yield _sse_event({"stage": "error", "message": "Rate limit hit. Please wait a minute and try again."})
-            else:
-                yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
-            return
-        chunk_results.append(analysis)
-        yield _sse_event({
-            "stage": "chunk_done",
-            "chunk_index": i,
-            "total_chunks": total_chunks,
-            "result": analysis,
-        })
+            chunk_results.append(analysis)
 
-    # Stage 4: Synthesize all chunk analyses
-    yield _sse_event({"stage": "synthesizing", "message": "Synthesizing final report..."})
+            yield _sse_event({
+                "stage": "chunk_done",
+                "chunk_index": i,
+                "total_chunks": total_chunks,
+                "result": analysis,
+            })
+
+        except Exception:
+            yield _sse_event({
+                "stage": "error",
+                "message": "AI processing failed",
+            })
+            return
+
+    yield _sse_event({"stage": "synthesizing"})
+
     combined = "\n\n---\n\n".join(
-        [f"### Chunk {i+1} Analysis\n{r}" for i, r in enumerate(chunk_results)]
+        [f"### Chunk {i+1}\n{r}" for i, r in enumerate(chunk_results)]
     )
-    stats_str = json.dumps(processed.summary_stats, indent=2)
+
     synth_prompt = SYNTHESIS_PROMPT.format(
         total_lines=processed.original_line_count,
         total_chunks=total_chunks,
         chunk_analyses=combined,
-        stats=stats_str,
+        stats=json.dumps(processed.summary_stats, indent=2),
     )
-    try:
-        synth_result = await llm.ainvoke(synth_prompt)
-        final_report = _extract_text(synth_result)
-    except Exception as e:
-        error_msg = str(e)
-        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-            yield _sse_event({"stage": "error", "message": "Rate limit hit. Please wait a minute and try again."})
-        else:
-            yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
-        return
-
-    yield _sse_event({
-        "stage": "complete",
-        "result": final_report,
-        "stats": processed.summary_stats,
-    })
-
-app = FastAPI(title="Log Analyzer Agent")
-
-def get_current_user(credentials=Depends(security)):
-    token = credentials.credentials
 
     try:
-        jwks = requests.get(SUPABASE_JWKS_URL).json()
+        final_result = await llm.ainvoke(synth_prompt)
+        final_report = _extract_text(final_result)
 
-        payload = jwt.decode(
-            token,
-            jwks,
-            algorithms=["RS256"],
-            audience="authenticated",
-            issuer=SUPABASE_ISSUER,
-        )
-
-        return payload
+        yield _sse_event({
+            "stage": "complete",
+            "result": final_report,
+            "stats": processed.summary_stats,
+        })
 
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        yield _sse_event({
+            "stage": "error",
+            "message": "Final synthesis failed",
+        })
 
 
+
+app = FastAPI(title="Log Analyzer Agent")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
     with open("index.html", "r") as f:
         return f.read()
 
-
 @app.post("/analyze")
 async def analyze_log(
     file: UploadFile = File(...),
     user=Depends(get_current_user)
 ):
-   if not file.filename.endswith(".txt"):
-    return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
-   try:
-    content= await file.read()
-    logT = content.decode("utf-8",errors="ignore")
-    if not logT.strip():
+    if not file.filename.endswith(".txt"):
+        return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
+
+    content = await file.read()
+    log_text = content.decode("utf-8", errors="ignore")
+
+    if not log_text.strip():
         return JSONResponse({"error": "Empty file"}, status_code=400)
-    info = await aLog(logT)
 
-    return {"analysis":info}
-   except Exception as e:
-    return JSONResponse({"error": str(e)}, status_code=500)
-
+    result = await analyze_simple(log_text)
+    return {"analysis": result}
 
 @app.post("/analyze-stream")
-async def analyze_log_stream(
+async def analyze_stream(
     file: UploadFile = File(...),
     user=Depends(get_current_user)
 ):
-    user_id = user["sub"]
-    print("Authenticated user:", user_id)
-    """SSE endpoint for chunked analysis of large log files."""
     if not file.filename.endswith(".txt"):
         return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
-    try:
-        content = await file.read()
-        log_text = content.decode("utf-8", errors="ignore")
-        if not log_text.strip():
-            return JSONResponse({"error": "Empty file"}, status_code=400)
-        return StreamingResponse(
-            _stream_analysis(log_text),
-            media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-        )
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-    
-@app.api_route("/health", methods=["GET", "HEAD"])
-async def health_check():
-    return {
-        "status": "healthy",
-        "google_api_key_configured": bool(os.getenv("GOOGLE_API_KEY"))
-    }
 
-# Serve static files explicitly to avoid route conflicts
+    content = await file.read()
+    log_text = content.decode("utf-8", errors="ignore")
+
+    if not log_text.strip():
+        return JSONResponse({"error": "Empty file"}, status_code=400)
+
+    return StreamingResponse(
+        _stream_analysis(log_text),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
 @app.get("/style.css")
 async def get_css():
     return FileResponse("style.css", media_type="text/css")
 
 @app.get("/index.js")
 async def get_js():
-    return FileResponse(
-        "index.js",
-        media_type="application/javascript",
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
-    )
+    return FileResponse("index.js", media_type="application/javascript")
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -248,13 +274,11 @@ app.add_middleware(
         "http://127.0.0.1:8000",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
-

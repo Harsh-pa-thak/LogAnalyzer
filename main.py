@@ -9,8 +9,19 @@ import asyncio
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTHESIS_PROMPT
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer
+from jose import jwt
+import requests
 
 load_dotenv()
+security = HTTPBearer()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/keys"
+SUPABASE_ISSUER = f"{SUPABASE_URL}/auth/v1"
+
+jwks = requests.get(SUPABASE_JWKS_URL).json()
 
 prompt_template = """
 You are a senior site reliability engineer.
@@ -138,6 +149,23 @@ async def _stream_analysis(log_text: str):
     })
 
 app = FastAPI(title="Log Analyzer Agent")
+
+
+def get_current_user(credentials=Depends(security)):
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(
+            token,
+            jwks,
+            algorithms=["RS256"],
+            audience="authenticated",
+            issuer=SUPABASE_ISSUER,
+        )
+        return payload
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def root():

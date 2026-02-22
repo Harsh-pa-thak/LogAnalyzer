@@ -485,3 +485,174 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
     a.click();
     URL.revokeObjectURL(url);
 });
+
+
+// ================================================================
+// HISTORY VIEW — state, fetch, render
+// ================================================================
+
+let currentView = "dashboard";
+
+// DOM refs (created after dashboardView is shown)
+const navDashboard = document.getElementById("navDashboard");
+const navHistory = document.getElementById("navHistory");
+const historySection = document.getElementById("historySection");
+const historySkeleton = document.getElementById("historySkeleton");
+const historyEmpty = document.getElementById("historyEmpty");
+const historyList = document.getElementById("historyList");
+const historyCount = document.getElementById("historyCount");
+
+// Sections that belong only to the dashboard view
+const uploadSection = document.querySelector(".upload-section");
+const progressSectionEl = document.getElementById("progressSection");
+const statsSectionEl = document.getElementById("statsSection");
+const resultsSectionEl = document.querySelector(".results-section");
+
+
+function showDashboardView() {
+    currentView = "dashboard";
+    navDashboard.classList.add("active");
+    navHistory.classList.remove("active");
+
+    historySection.classList.add("hidden");
+    uploadSection.classList.remove("hidden");
+    resultsSectionEl.classList.remove("hidden");
+    // stats/progress stay as-is
+}
+
+
+function showHistoryView() {
+    currentView = "history";
+    navHistory.classList.add("active");
+    navDashboard.classList.remove("active");
+
+    uploadSection.classList.add("hidden");
+    progressSectionEl.classList.add("hidden");
+    statsSectionEl.classList.add("hidden");
+    resultsSectionEl.classList.add("hidden");
+    historySection.classList.remove("hidden");
+
+    fetchHistory();
+}
+
+
+async function fetchHistory() {
+    // Show skeleton, hide list + empty
+    historySkeleton.classList.remove("hidden");
+    historyEmpty.classList.add("hidden");
+    historyList.innerHTML = "";
+    historyCount.textContent = "";
+
+    let token;
+    try {
+        token = await getAccessToken();
+    } catch {
+        historySkeleton.classList.add("hidden");
+        historyList.innerHTML = `<p style="color:#ef4444;font-size:13px;">Auth error — please sign in again.</p>`;
+        return;
+    }
+
+    try {
+        const res = await fetch("http://127.0.0.1:8000/history", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const items = await res.json();
+
+        historySkeleton.classList.add("hidden");
+
+        if (!items || items.length === 0) {
+            historyEmpty.classList.remove("hidden");
+            return;
+        }
+
+        historyCount.textContent = `${items.length} ${items.length === 1 ? "analysis" : "analyses"}`;
+        items.forEach(item => {
+            historyList.appendChild(renderHistoryItem(item));
+        });
+
+    } catch (err) {
+        historySkeleton.classList.add("hidden");
+        historyList.innerHTML = `<p style="color:#ef4444;font-size:13px;">Failed to load history: ${err.message}</p>`;
+    }
+}
+
+
+function renderHistoryItem(item) {
+    const el = document.createElement("div");
+    el.className = "history-item";
+
+    const date = item.created_at
+        ? new Date(item.created_at).toLocaleString("en-US", {
+            month: "short", day: "numeric", year: "numeric",
+            hour: "2-digit", minute: "2-digit"
+        })
+        : "Unknown date";
+
+    el.innerHTML = `
+        <div class="history-item-header">
+            <span class="history-filename">${item.file_name || "Untitled"}</span>
+            <span class="history-date">${date}</span>
+        </div>
+        <div class="history-stats-row">
+            <div class="history-stat">
+                <span class="history-stat-value">${(item.total_lines ?? 0).toLocaleString()}</span>
+                <span class="history-stat-label">Lines</span>
+            </div>
+            <div class="history-stat">
+                <span class="history-stat-value is-critical">${item.critical ?? 0}</span>
+                <span class="history-stat-label">Critical</span>
+            </div>
+            <div class="history-stat">
+                <span class="history-stat-value is-error">${item.errors ?? 0}</span>
+                <span class="history-stat-label">Errors</span>
+            </div>
+            <div class="history-stat">
+                <span class="history-stat-value is-warning">${item.warnings ?? 0}</span>
+                <span class="history-stat-label">Warnings</span>
+            </div>
+        </div>
+    `;
+
+    el.addEventListener("click", () => loadHistoryItem(item));
+    return el;
+}
+
+
+function loadHistoryItem(item) {
+    // Switch to dashboard view
+    showDashboardView();
+
+    // Hide upload section, show results + stats
+    uploadSection.classList.add("hidden");
+    resultsSectionEl.classList.remove("hidden");
+    statsSectionEl.classList.remove("hidden");
+
+    // Populate stats cards
+    if (statLines) statLines.textContent = (item.total_lines ?? 0).toLocaleString();
+    if (statCritical) statCritical.textContent = (item.critical ?? 0).toString();
+    if (statErrors) statErrors.textContent = (item.errors ?? 0).toString();
+    if (statWarnings) statWarnings.textContent = (item.warnings ?? 0).toString();
+
+    // Render stored summary
+    emptyState.classList.add("hidden");
+    resultsContent.classList.remove("hidden");
+    resultsContent.innerHTML = marked.parse(item.summary || "_No summary stored._");
+
+    // Show copy/download buttons
+    document.getElementById("copyBtn").style.display = "flex";
+    document.getElementById("downloadBtn").style.display = "flex";
+}
+
+
+// Sidebar navigation
+navDashboard.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (currentView !== "dashboard") showDashboardView();
+});
+
+navHistory.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (currentView !== "history") showHistoryView();
+});

@@ -386,6 +386,28 @@ body {
     }
 }
 
+/* Chunk streaming */
+.chunk-header {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--primary);
+    padding: 18px 0 8px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 8px;
+}
+
+.chunk-header:first-child {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.chunk-body {
+    margin-bottom: 8px;
+}
+
 
 /* Cards */
 .card {

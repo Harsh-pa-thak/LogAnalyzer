@@ -9,6 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/7876c2f7-237a-4b98-b8c1-c4043b22b788/deploy-status)](https://app.netlify.com/projects/logaiapp/deploys)
+<br>
 ![LogAI Dashboard](https://img.shields.io/badge/Status-Operational-success?style=flat-square)
 
 </div>

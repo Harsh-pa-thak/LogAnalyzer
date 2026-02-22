@@ -196,9 +196,23 @@ signupBtn.addEventListener("click", async () => {
 });
 
 // ----------------------------------------------------------------
-// Logout
+// Logout + Dropdown toggle
 // ----------------------------------------------------------------
+const userDropdown = document.getElementById("userDropdown");
+
+// Toggle dropdown on avatar click
+userAvatarEl.addEventListener("click", (e) => {
+    e.stopPropagation();
+    userDropdown.classList.toggle("open");
+});
+
+// Close dropdown when clicking anywhere outside
+document.addEventListener("click", () => {
+    userDropdown.classList.remove("open");
+});
+
 logoutBtn.addEventListener("click", async () => {
+    userDropdown.classList.remove("open");
     await supabaseClient.auth.signOut();
     showLogin();
 });
@@ -275,10 +289,10 @@ function setStage(stage) {
 
 function updateStats(stats) {
     if (!stats) return;
-    if (stats.total_lines !== undefined) statLines.textContent = stats.total_lines.toLocaleString();
-    if (stats.critical !== undefined) statCritical.textContent = stats.critical.toLocaleString();
-    if (stats.errors !== undefined) statErrors.textContent = stats.errors.toLocaleString();
-    if (stats.warnings !== undefined) statWarnings.textContent = stats.warnings.toLocaleString();
+    if (statLines && stats.total_lines !== undefined) statLines.textContent = stats.total_lines.toLocaleString();
+    if (statCritical && stats.critical !== undefined) statCritical.textContent = stats.critical.toLocaleString();
+    if (statErrors && stats.errors !== undefined) statErrors.textContent = stats.errors.toLocaleString();
+    if (statWarnings && stats.warnings !== undefined) statWarnings.textContent = stats.warnings.toLocaleString();
 }
 
 function resetProgress() {

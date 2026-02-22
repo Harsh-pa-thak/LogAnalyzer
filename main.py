@@ -3,31 +3,68 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
 from fastapi.security import HTTPBearer
 from dotenv import load_dotenv
+from jose import jwt, jwk
+import requests
 import os
 import json
-import requests
-from jose import jwt, jwk
-from jose.utils import base64url_decode
+import asyncio
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTHESIS_PROMPT
 
-
 load_dotenv()
+
+# =========================
+# SUPABASE AUTH CONFIG
+# =========================
+
+security = HTTPBearer()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 if not SUPABASE_URL:
     raise RuntimeError("SUPABASE_URL not configured")
 
-SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json"
 SUPABASE_ISSUER = f"{SUPABASE_URL}/auth/v1"
+SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json"
 
-security = HTTPBearer()
 
-try:
-    JWKS = requests.get(SUPABASE_JWKS_URL).json()
-except Exception:
-    JWKS = {"keys": []}
+def get_current_user(credentials=Depends(security)):
+    token = credentials.credentials
 
+    try:
+        header = jwt.get_unverified_header(token)
+        kid = header.get("kid")
+
+        jwks = requests.get(SUPABASE_JWKS_URL).json()
+
+        key = next(
+            (k for k in jwks["keys"] if k["kid"] == kid),
+            None
+        )
+
+        if key is None:
+            raise HTTPException(status_code=401, detail="Invalid token key")
+
+        public_key = jwk.construct(key)
+        pem_key = public_key.to_pem().decode("utf-8")
+
+        payload = jwt.decode(
+            token,
+            pem_key,
+            algorithms=["ES256"],
+            issuer=SUPABASE_ISSUER,
+            options={"verify_aud": False},
+        )
+
+        return payload
+
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+# =========================
+# GEMINI AI CONFIG
+# =========================
 
 prompt_template = """
 You are a senior site reliability engineer.
@@ -51,70 +88,22 @@ llm = ChatGoogleGenerativeAI(
 )
 
 
-
-
-def get_current_user(credentials=Depends(security)):
-    print("AUTH DEPENDENCY CALLED")
-
-    token = credentials.credentials
-
-    try:
-        header = jwt.get_unverified_header(token)
-        kid = header.get("kid")
-
-        print("RAW TOKEN:", token[:40])
-        print("KID:", kid)
-
-        # Fetch fresh JWKS every request (safe for now)
-        jwks = requests.get(SUPABASE_JWKS_URL).json()
-
-        key = next(
-            (k for k in jwks["keys"] if k["kid"] == kid),
-            None
-        )
-
-        if key is None:
-            raise HTTPException(status_code=401, detail="Invalid token key")
-
-        # 🔥 Construct public key properly
-        public_key = jwk.construct(key)
-
-        # Convert to PEM
-        pem_key = public_key.to_pem().decode("utf-8")
-
-        payload = jwt.decode(
-            token,
-            pem_key,
-            algorithms=["ES256"],
-            issuer=SUPABASE_ISSUER,
-            options={"verify_aud": False},
-        )
-
-        print("Authenticated user:", payload.get("sub"))
-        return payload
-
-    except Exception as e:
-        print("JWT ERROR:", e)
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-
-
 def _extract_text(result) -> str:
     content = result.content
     if isinstance(content, list):
-        parts = []
+        text_parts = []
         for part in content:
             if isinstance(part, dict) and "text" in part:
-                parts.append(part["text"])
+                text_parts.append(part["text"])
             elif isinstance(part, str):
-                parts.append(part)
-        return "".join(parts)
+                text_parts.append(part)
+        return "".join(text_parts)
     return str(content)
 
 
-async def analyze_simple(log_data: str):
-    prompt = prompt_template.format(log_data=log_data)
-    result = await llm.ainvoke(prompt)
+async def aLog(log_data: str):
+    fpt = prompt_template.format(log_data=log_data)
+    result = await llm.ainvoke(fpt)
     return _extract_text(result)
 
 
@@ -124,6 +113,7 @@ def _sse_event(data: dict) -> str:
 
 async def _stream_analysis(log_text: str):
     yield _sse_event({"stage": "preprocessing", "message": "Preprocessing log file..."})
+
     processed = preprocess_log(log_text)
 
     yield _sse_event({
@@ -138,7 +128,7 @@ async def _stream_analysis(log_text: str):
     yield _sse_event({
         "stage": "chunking",
         "total_chunks": total_chunks,
-        "message": f"Split into {total_chunks} chunks",
+        "message": f"Split into {total_chunks} chunks for analysis",
     })
 
     chunk_results = []
@@ -148,6 +138,7 @@ async def _stream_analysis(log_text: str):
             "stage": "analyzing",
             "chunk_index": i,
             "total_chunks": total_chunks,
+            "message": f"Analyzing chunk {i}/{total_chunks}...",
         })
 
         prompt = CHUNK_PROMPT.format(
@@ -159,59 +150,65 @@ async def _stream_analysis(log_text: str):
         try:
             result = await llm.ainvoke(prompt)
             analysis = _extract_text(result)
-            chunk_results.append(analysis)
-
-            yield _sse_event({
-                "stage": "chunk_done",
-                "chunk_index": i,
-                "total_chunks": total_chunks,
-                "result": analysis,
-            })
-
-        except Exception:
-            yield _sse_event({
-                "stage": "error",
-                "message": "AI processing failed",
-            })
+        except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                yield _sse_event({"stage": "error", "message": "Rate limit hit. Please wait a minute and try again."})
+            else:
+                yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
             return
 
-    yield _sse_event({"stage": "synthesizing"})
+        chunk_results.append(analysis)
+
+        yield _sse_event({
+            "stage": "chunk_done",
+            "chunk_index": i,
+            "total_chunks": total_chunks,
+            "result": analysis,
+        })
+
+    yield _sse_event({"stage": "synthesizing", "message": "Synthesizing final report..."})
 
     combined = "\n\n---\n\n".join(
-        [f"### Chunk {i+1}\n{r}" for i, r in enumerate(chunk_results)]
+        [f"### Chunk {i+1} Analysis\n{r}" for i, r in enumerate(chunk_results)]
     )
+
+    stats_str = json.dumps(processed.summary_stats, indent=2)
 
     synth_prompt = SYNTHESIS_PROMPT.format(
         total_lines=processed.original_line_count,
         total_chunks=total_chunks,
         chunk_analyses=combined,
-        stats=json.dumps(processed.summary_stats, indent=2),
+        stats=stats_str,
     )
 
     try:
-        final_result = await llm.ainvoke(synth_prompt)
-        final_report = _extract_text(final_result)
+        synth_result = await llm.ainvoke(synth_prompt)
+        final_report = _extract_text(synth_result)
+    except Exception as e:
+        error_msg = str(e)
+        yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
+        return
 
-        yield _sse_event({
-            "stage": "complete",
-            "result": final_report,
-            "stats": processed.summary_stats,
-        })
-
-    except Exception:
-        yield _sse_event({
-            "stage": "error",
-            "message": "Final synthesis failed",
-        })
+    yield _sse_event({
+        "stage": "complete",
+        "result": final_report,
+        "stats": processed.summary_stats,
+    })
 
 
+# =========================
+# FASTAPI APP
+# =========================
 
 app = FastAPI(title="Log Analyzer Agent")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
     with open("index.html", "r") as f:
         return f.read()
+
 
 @app.post("/analyze")
 async def analyze_log(
@@ -222,16 +219,17 @@ async def analyze_log(
         return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
 
     content = await file.read()
-    log_text = content.decode("utf-8", errors="ignore")
+    logT = content.decode("utf-8", errors="ignore")
 
-    if not log_text.strip():
+    if not logT.strip():
         return JSONResponse({"error": "Empty file"}, status_code=400)
 
-    result = await analyze_simple(log_text)
-    return {"analysis": result}
+    info = await aLog(logT)
+    return {"analysis": info}
+
 
 @app.post("/analyze-stream")
-async def analyze_stream(
+async def analyze_log_stream(
     file: UploadFile = File(...),
     user=Depends(get_current_user)
 ):
@@ -247,23 +245,26 @@ async def analyze_stream(
     return StreamingResponse(
         _stream_analysis(log_text),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "google_api_key_configured": bool(os.getenv("GOOGLE_API_KEY"))
+    }
+
 
 @app.get("/style.css")
 async def get_css():
     return FileResponse("style.css", media_type="text/css")
 
+
 @app.get("/index.js")
 async def get_js():
     return FileResponse("index.js", media_type="application/javascript")
-
-@app.get("/health")
-async def health():
-    return {"status": "healthy"}
 
 
 app.add_middleware(
@@ -277,6 +278,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 if __name__ == "__main__":
     import uvicorn

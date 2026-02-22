@@ -151,12 +151,8 @@ async def _stream_analysis(log_text: str):
 
 app = FastAPI(title="Log Analyzer Agent")
 
-
 def get_current_user(credentials=Depends(security)):
     token = credentials.credentials
-
-    if not SUPABASE_URL:
-        raise HTTPException(status_code=503, detail="Auth system unavailable")
 
     try:
         jwks = requests.get(SUPABASE_JWKS_URL).json()
@@ -168,10 +164,12 @@ def get_current_user(credentials=Depends(security)):
             audience="authenticated",
             issuer=SUPABASE_ISSUER,
         )
+
         return payload
 
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -236,7 +234,11 @@ async def get_css():
 
 @app.get("/index.js")
 async def get_js():
-    return FileResponse("index.js", media_type="application/javascript")
+    return FileResponse(
+        "index.js",
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
 
 app.add_middleware(
     CORSMiddleware,

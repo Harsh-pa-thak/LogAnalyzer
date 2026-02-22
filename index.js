@@ -1,15 +1,19 @@
-const { createClient } = supabase;
-
+// Supabase CDN is loaded before this script, so we can init at top level
 const SUPABASE_URL = "https://eqwsqthpdlwwgfxrjujg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_qYwkc1f4o5MO9Mw91mUzoQ_94GS3iAx";
 
-const supabaseClient = createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
+if (!window.supabase) {
+    console.error("[LogAI] Supabase CDN failed to load. Check your network or the script tag in index.html.");
+}
 
-window.supabaseClient = supabaseClient;
-
+let supabaseClient;
+try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
+    console.log("[LogAI] Supabase client initialized:", supabaseClient);
+} catch (e) {
+    console.error("[LogAI] Failed to initialize Supabase client:", e);
+}
 
 const fileInput = document.getElementById("logFile");
 const fileInfo = document.getElementById("fileInfo");

@@ -1,3 +1,16 @@
+const { createClient } = supabase;
+
+const SUPABASE_URL = "https://eqwsqthpdlwwgfxrjujg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_qYwkc1f4o5MO9Mw91mUzoQ_94GS3iAx";
+
+const supabaseClient = createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+window.supabaseClient = supabaseClient;
+
+
 const fileInput = document.getElementById("logFile");
 const fileInfo = document.getElementById("fileInfo");
 const analyzeBtn = document.getElementById("analyzeBtn");

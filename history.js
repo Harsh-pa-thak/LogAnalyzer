@@ -126,7 +126,7 @@ async function fetchHistory() {
     }
 
     try {
-        const res = await fetch("http://127.0.0.1:8000/history", {
+        const res = await fetch("https://loganalyzer-4vu8.onrender.com/history", {
             headers: { "Authorization": `Bearer ${token}` }
         });
 

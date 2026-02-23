@@ -336,7 +336,7 @@ async function uploadLog() {
     try {
         const token = await getAccessToken();
 
-        const response = await fetch("http://127.0.0.1:8000/analyze-stream", {
+        const response = await fetch("https://loganalyzer-4vu8.onrender.com/analyze-stream", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`

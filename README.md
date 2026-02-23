@@ -1,10 +1,10 @@
 <div align="center">
 
-# LogAI – Intelligent Log Analysis Platform (v2.0)
+# [LogAI – Intelligent Log Analysis Platform (v2.0)](https://logaiapp.netlify.app/)
 
 Secure, real-time AI-powered diagnostics for modern systems
 
-[Live Demo](https://logaiapp.netlify.app/)  
+[Live](https://logaiapp.netlify.app/)  
 Backend: FastAPI | Auth & DB: Supabase | AI: Google Gemini | Hosted on Render
 
 </div>

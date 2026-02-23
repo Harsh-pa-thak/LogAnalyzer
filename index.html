@@ -424,8 +424,8 @@
                 </div>
 
                 <nav>
-                    <a href="#" class="active" id="navDashboard">Dashboard</a>
-                    <a href="#" id="navHistory">History <span class="badge">Pro</span></a>
+                    <a href="index.html" class="active" id="navDashboard">Dashboard</a>
+                    <a href="history.html">History</a>
                     <a href="#" id="navSettings">Settings</a>
                 </nav>
 
@@ -575,37 +575,7 @@
                         </div>
                     </section>
 
-                    <!-- History View -->
-                    <section class="history-section hidden" id="historySection">
-                        <div class="card history-card">
-                            <div class="card-header">
-                                <h3>Analysis History</h3>
-                                <span class="history-count" id="historyCount"></span>
-                            </div>
-                            <div class="card-body history-body">
-                                <!-- Loading skeleton -->
-                                <div id="historySkeleton" class="hidden">
-                                    <div class="history-skeleton-item"></div>
-                                    <div class="history-skeleton-item"></div>
-                                    <div class="history-skeleton-item"></div>
-                                </div>
-                                <!-- Empty state -->
-                                <div id="historyEmpty" class="history-empty hidden">
-                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                        <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <p>No analyses yet.</p>
-                                    <span>Run your first log analysis to see it here.</span>
-                                </div>
-                                <!-- List -->
-                                <div id="historyList" class="history-list"></div>
-                            </div>
-                        </div>
-                    </section>
+
 
                 </div>
             </main>

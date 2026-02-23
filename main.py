@@ -232,6 +232,7 @@ app = FastAPI(title="Log Analyzer Agent")
 
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/index.html", response_class=HTMLResponse)
 async def root():
     with open("index.html", "r") as f:
         return f.read()
@@ -309,6 +310,17 @@ async def get_css():
 @app.get("/index.js")
 async def get_js():
     return FileResponse("index.js", media_type="application/javascript")
+
+
+@app.get("/history.html", response_class=HTMLResponse)
+async def get_history_page():
+    with open("history.html", "r") as f:
+        return f.read()
+
+
+@app.get("/history.js")
+async def get_history_js():
+    return FileResponse("history.js", media_type="application/javascript")
 
 
 app.add_middleware(

@@ -15,9 +15,7 @@ from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTH
 
 load_dotenv()
 
-# =========================
-# SUPABASE AUTH CONFIG
-# =========================
+
 
 security = HTTPBearer()
 
@@ -27,10 +25,6 @@ if not SUPABASE_URL:
 
 SUPABASE_ISSUER = f"{SUPABASE_URL}/auth/v1"
 SUPABASE_JWKS_URL = f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json"
-
-# =========================
-# SUPABASE SERVICE CLIENT
-# =========================
 
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 if not SUPABASE_SERVICE_ROLE_KEY:
@@ -74,9 +68,7 @@ def get_current_user(credentials=Depends(security)):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
-# =========================
-# GEMINI AI CONFIG
-# =========================
+
 
 prompt_template = """
 You are a senior site reliability engineer.

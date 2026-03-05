@@ -194,7 +194,6 @@ async def _stream_analysis(log_text: str, user_id: str = "", file_name: str = ""
         yield _sse_event({"stage": "error", "message": f"AI analysis failed: {error_msg[:200]}"})
         return
 
-    # Save analysis to DB (non-blocking — failure does not break stream)
     if supabase_admin and user_id:
         try:
             supabase_admin.table("analyses").insert({
@@ -216,9 +215,6 @@ async def _stream_analysis(log_text: str, user_id: str = "", file_name: str = ""
     })
 
 
-# =========================
-# FASTAPI APP
-# =========================
 
 app = FastAPI(title="Log Analyzer Agent")
 

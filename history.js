@@ -1,9 +1,3 @@
-// ================================================================
-// LogAI — history.js
-// Handles auth check, fetching, and rendering analysis history
-// on the standalone history.html page.
-// ================================================================
-
 const SUPABASE_URL = "https://eqwsqthpdlwwgfxrjujg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_qYwkc1f4o5MO9Mw91mUzoQ_94GS3iAx";
 
@@ -23,9 +17,6 @@ const supabaseClient = window.supabase.createClient(
     }
 );
 
-// ----------------------------------------------------------------
-// DOM refs
-// ----------------------------------------------------------------
 const appLoader = document.getElementById("appLoader");
 const historyPage = document.getElementById("historyPage");
 const userEmailEl = document.getElementById("userEmail");
@@ -37,9 +28,6 @@ const historyEmpty = document.getElementById("historyEmpty");
 const historyList = document.getElementById("historyList");
 const historyCount = document.getElementById("historyCount");
 
-// ----------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------
 async function getAccessToken() {
     const { data, error } = await supabaseClient.auth.getSession();
     if (error || !data.session) {
@@ -55,12 +43,8 @@ function populateHeader(user) {
     }
 }
 
-// ----------------------------------------------------------------
-// Init — session guard
-// ----------------------------------------------------------------
 window.addEventListener("DOMContentLoaded", async () => {
 
-    // Configure marked
     marked.setOptions({
         highlight: function (code, lang) {
             if (lang && hljs.getLanguage(lang)) {
@@ -72,13 +56,11 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     const { data } = await supabaseClient.auth.getSession();
 
-    // Fade out loader
     setTimeout(() => {
         appLoader.style.opacity = "0";
         setTimeout(() => {
             appLoader.style.display = "none";
             if (!data.session) {
-                // Not logged in — redirect to the main page
                 window.location.href = "index.html";
                 return;
             }
@@ -89,9 +71,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     }, 600);
 });
 
-// ----------------------------------------------------------------
-// Dropdown toggle
-// ----------------------------------------------------------------
 userAvatarEl.addEventListener("click", (e) => {
     e.stopPropagation();
     userDropdown.classList.toggle("open");
@@ -107,9 +86,6 @@ logoutBtn.addEventListener("click", async () => {
     window.location.href = "index.html";
 });
 
-// ----------------------------------------------------------------
-// Fetch history from backend
-// ----------------------------------------------------------------
 async function fetchHistory() {
     historySkeleton.classList.remove("hidden");
     historyEmpty.classList.add("hidden");
@@ -151,9 +127,6 @@ async function fetchHistory() {
     }
 }
 
-// ----------------------------------------------------------------
-// Render a single history item with expandable detail panel
-// ----------------------------------------------------------------
 function renderHistoryItem(item) {
     const el = document.createElement("div");
     el.className = "history-item";
@@ -270,7 +243,6 @@ function renderHistoryItem(item) {
         </div>
     `;
 
-    // Toggle expand / collapse
     const toggleBtn = el.querySelector(`#toggle-${item.id}`);
     const detailPanel = el.querySelector(`#detail-${item.id}`);
 
@@ -282,7 +254,6 @@ function renderHistoryItem(item) {
         toggleBtn.childNodes[0].textContent = isOpen ? "View full report" : "Hide report";
     });
 
-    // Copy button
     el.querySelector(`[data-copy="${item.id}"]`).addEventListener("click", (e) => {
         e.stopPropagation();
         const reportEl = document.getElementById(`report-${item.id}`);
@@ -293,7 +264,6 @@ function renderHistoryItem(item) {
         });
     });
 
-    // Download button
     el.querySelector(`[data-download="${item.id}"]`).addEventListener("click", (e) => {
         e.stopPropagation();
         const reportEl = document.getElementById(`report-${item.id}`);

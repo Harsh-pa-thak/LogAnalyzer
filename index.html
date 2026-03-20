@@ -563,6 +563,8 @@
 
     <!-- Dashboard — always visible, no login gate -->
     <div id="dashboardView">
+        <!-- #14 Mobile sidebar backdrop -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
         <div class="app-container">
             <aside class="sidebar">
                 <div class="brand">
@@ -588,6 +590,14 @@
 
             <main class="main-content">
                 <header class="top-bar">
+                    <!-- #14 Hamburger for mobile -->
+                    <button class="hamburger-btn" id="hamburgerBtn">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
                     <h2>Log Analysis Dashboard</h2>
                     <div class="user-profile" id="userProfile">
                         <!-- Shown when NOT logged in -->

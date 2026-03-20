@@ -666,4 +666,23 @@ document.getElementById("newAnalysisBtn").addEventListener("click", () => {
     showToast("Ready for a new analysis", "info");
 });
 
-// Sidebar — Dashboard link is now a plain <a> in HTML; no JS needed for nav.
+// #14 — Mobile sidebar toggle
+const sidebar     = document.querySelector(".sidebar");
+const backdrop    = document.getElementById("sidebarBackdrop");
+const hamburger   = document.getElementById("hamburgerBtn");
+
+hamburger.addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+    backdrop.classList.toggle("open");
+});
+backdrop.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("open");
+});
+// Close sidebar when a nav link is clicked (mobile)
+sidebar.querySelectorAll("nav a").forEach(link => {
+    link.addEventListener("click", () => {
+        sidebar.classList.remove("open");
+        backdrop.classList.remove("open");
+    });
+});

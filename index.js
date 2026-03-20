@@ -55,6 +55,7 @@ const statWarnings = document.getElementById("statWarnings");
 const userEmailEl = document.getElementById("userEmail");
 const userAvatarEl = document.getElementById("userAvatar");
 const loginCtaEl = document.getElementById("loginCta");
+const guestChipEl = document.getElementById("guestChip");
 const logoutBtn = document.getElementById("logoutBtn");
 
 // ── Auth UI toggle (no page switch — dashboard is always visible) ─────────────
@@ -65,12 +66,14 @@ function setAuthUI(user) {
         const initials = (user.email || "?").slice(0, 2).toUpperCase();
         userAvatarEl.textContent = initials;
         userAvatarEl.style.display = "flex";
-        loginCtaEl.classList.remove("visible");   // hide Login button
+        loginCtaEl.classList.remove("visible");
+        guestChipEl.classList.remove("visible");   // #13 hide guest chip
     } else {
         // Anonymous state
         userEmailEl.textContent = "";
         userAvatarEl.style.display = "none";
-        loginCtaEl.classList.add("visible");      // show Login button
+        loginCtaEl.classList.add("visible");
+        guestChipEl.classList.add("visible");      // #13 show guest chip
     }
 }
 
@@ -89,7 +92,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     // Fade out loader — dashboard is always accessible, no auth gate
     setTimeout(() => {
         appLoader.style.opacity = "0";
-        setTimeout(() => { appLoader.style.display = "none"; }, 500);
+        setTimeout(() => {
+            appLoader.style.display = "none";
+            document.getElementById("dashboardView").classList.add("visible"); // #11 fade in
+        }, 500);
     }, 600);
 
     // Check session and update header UI only

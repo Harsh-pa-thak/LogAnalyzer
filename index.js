@@ -1,6 +1,13 @@
 const SUPABASE_URL = "https://eqwsqthpdlwwgfxrjujg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_qYwkc1f4o5MO9Mw91mUzoQ_94GS3iAx";
 
+// ── Anonymous identity (persisted across sessions) ──────────────────────────
+let anonId = localStorage.getItem("anon_id");
+if (!anonId) {
+    anonId = crypto.randomUUID();
+    localStorage.setItem("anon_id", anonId);
+}
+
 if (!window.supabase) {
     console.error("[LogAI] Supabase CDN failed to load.");
 }
@@ -334,15 +341,34 @@ async function uploadLog() {
     formData.append("file", file);
 
     try {
-        const token = await getAccessToken();
+        // Build headers — token is optional (anonymous users skip auth)
+        const reqHeaders = { "x-anon-id": anonId };
+        try {
+            const token = await getAccessToken();
+            reqHeaders["Authorization"] = `Bearer ${token}`;
+        } catch (_) {
+            // Not logged in — proceed as anonymous
+        }
 
         const response = await fetch("https://loganalyzer-4vu8.onrender.com/analyze-stream", {
             method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
+            headers: reqHeaders,
             body: formData,
         });
+
+        // ── Usage limit handling ─────────────────────────────────────────
+        if (response.status === 403) {
+            const data = await response.json();
+            if (data.detail === "FREE_LIMIT_REACHED") {
+                showLimitModal("free");
+            } else if (data.detail === "USER_LIMIT_REACHED") {
+                showLimitModal("user");
+            } else {
+                throw new Error(data.detail || "Access denied");
+            }
+            setLoading(false);
+            return;
+        }
 
         if (response.status === 401) {
             throw new Error("Session expired. Please login again.");
@@ -457,6 +483,81 @@ function setLoading(isLoading) {
     analyzeBtn.disabled = isLoading;
     btnText.textContent = isLoading ? "Processing..." : "Start Analysis";
     spinner.style.display = isLoading ? "block" : "none";
+}
+
+// ── Limit modal (injected without touching existing HTML) ────────────────────
+function showLimitModal(type) {
+    // Remove any existing modal
+    const existing = document.getElementById("limitModal");
+    if (existing) existing.remove();
+
+    const isFree = type === "free";
+    const title = isFree ? "Free Limit Reached" : "Daily Limit Reached";
+    const body  = isFree
+        ? "You've used your <strong>3 free analyses</strong> for today.<br>Login to get 20 analyses per day."
+        : "You've used your <strong>20 daily analyses</strong>.<br>Your limit resets at midnight UTC.";
+    const cta   = isFree ? "Sign In / Create Account" : "Got it";
+
+    const modal = document.createElement("div");
+    modal.id = "limitModal";
+    modal.innerHTML = `
+        <div id="limitModalBackdrop" style="
+            position:fixed;inset:0;z-index:9000;
+            background:rgba(0,0,10,0.72);
+            backdrop-filter:blur(6px);
+            display:flex;align-items:center;justify-content:center;padding:24px;
+        ">
+            <div style="
+                background:rgba(15,23,42,0.98);
+                border:1px solid rgba(148,163,184,0.14);
+                border-radius:20px;
+                padding:40px 36px 32px;
+                max-width:400px;width:100%;
+                box-shadow:0 32px 64px rgba(0,0,0,0.6),0 0 80px rgba(59,130,246,0.08);
+                font-family:'Inter',sans-serif;
+                text-align:center;
+            ">
+                <div style="
+                    width:52px;height:52px;margin:0 auto 20px;
+                    background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.1));
+                    border:1px solid rgba(239,68,68,0.25);
+                    border-radius:14px;display:flex;align-items:center;justify-content:center;
+                ">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3 style="color:#f8fafc;font-size:18px;font-weight:700;margin:0 0 10px;letter-spacing:-0.3px;">${title}</h3>
+                <p style="color:#64748b;font-size:13.5px;line-height:1.6;margin:0 0 28px;">${body}</p>
+                <button id="limitModalCta" style="
+                    width:100%;padding:13px 20px;
+                    background:linear-gradient(135deg,#3b82f6,#6366f1);
+                    border:none;border-radius:10px;
+                    font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;
+                    color:#fff;cursor:pointer;
+                    box-shadow:0 4px 16px rgba(59,130,246,0.35);
+                    transition:opacity 0.2s,transform 0.15s;
+                ">${cta}</button>
+                <button id="limitModalClose" style="
+                    margin-top:12px;width:100%;padding:11px 20px;
+                    background:transparent;border:1px solid rgba(148,163,184,0.14);
+                    border-radius:10px;font-family:'Inter',sans-serif;
+                    font-size:13.5px;color:#64748b;cursor:pointer;
+                    transition:border-color 0.2s,color 0.2s;
+                ">Dismiss</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById("limitModalCta").addEventListener("click", () => {
+        modal.remove();
+        if (isFree) showLogin();
+    });
+    document.getElementById("limitModalClose").addEventListener("click", () => modal.remove());
+    document.getElementById("limitModalBackdrop").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("limitModalBackdrop")) modal.remove();
+    });
 }
 
 analyzeBtn.addEventListener("click", (e) => {

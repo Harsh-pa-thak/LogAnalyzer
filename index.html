@@ -313,8 +313,15 @@
             box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
             transition: opacity 0.2s, transform 0.15s;
         }
-        .login-cta:hover { opacity: 0.88; transform: translateY(-1px); }
-        .login-cta.visible { display: flex; }
+
+        .login-cta:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        .login-cta.visible {
+            display: flex;
+        }
 
         .user-dropdown {
             position: absolute;
@@ -393,15 +400,19 @@
                 </div>
             </aside>
 
-            <main class=                <header class="top-bar">
+            <main class="main-content">
+                <header class="top-bar">
                     <h2>Log Analysis Dashboard</h2>
                     <div class="user-profile" id="userProfile">
                         <!-- Shown when NOT logged in -->
                         <a href="login.html" class="login-cta" id="loginCta">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                             Login
                         </a>
@@ -422,7 +433,7 @@
                             </button>
                         </div>
                     </div>
-                </header>       </header>
+                </header>
 
                 <div class="content-wrapper">
 
@@ -553,7 +564,8 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="index.js"></script>
 </body>

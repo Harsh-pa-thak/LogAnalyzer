@@ -118,6 +118,16 @@ logoutBtn.addEventListener("click", async () => {
     setAuthUI(null);
 });
 
+// ── History link guard — redirect to login if not authenticated ───────────────
+document.getElementById("navHistory").addEventListener("click", async (e) => {
+    e.preventDefault();
+    const { data } = await supabaseClient.auth.getSession();
+    if (data.session) {
+        window.location.href = "history.html";
+    } else {
+        window.location.href = "login.html?return=history.html";
+    }
+});
 
 // ----------------------------------------------------------------
 // Existing dashboard / upload logic (unchanged)

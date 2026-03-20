@@ -61,7 +61,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         setTimeout(() => {
             appLoader.style.display = "none";
             if (!data.session) {
-                window.location.href = "index.html";
+                window.location.href = "login.html?return=history.html";
                 return;
             }
             populateHeader(data.session.user);

@@ -451,17 +451,32 @@ function handleSSEEvent(data) {
         }
 
         case "chunk_done": {
-            // Stream each chunk result live into the results panel as it arrives
+            // #6 — Collapsible chunk results
+            const chunkWrap = document.createElement("div");
+            chunkWrap.className = "chunk-section";
+
             const chunkHeader = document.createElement("div");
-            chunkHeader.className = "chunk-header";
-            chunkHeader.textContent = `Chunk ${data.chunk_index}/${data.total_chunks} Analysis`;
+            chunkHeader.className = "chunk-header chunk-toggle";
+            chunkHeader.innerHTML = `<span>Chunk ${data.chunk_index}/${data.total_chunks} Analysis</span><svg class="chunk-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
             const chunkBody = document.createElement("div");
-            chunkBody.className = "chunk-body markdown-body";
+            chunkBody.className = "chunk-body markdown-body chunk-collapsible open";
             chunkBody.innerHTML = marked.parse(data.result);
 
-            resultsContent.appendChild(chunkHeader);
-            resultsContent.appendChild(chunkBody);
+            // Collapse previous chunks
+            resultsContent.querySelectorAll(".chunk-collapsible.open").forEach(el => {
+                el.classList.remove("open");
+                el.previousElementSibling?.querySelector(".chunk-chevron")?.classList.add("collapsed");
+            });
+
+            chunkHeader.addEventListener("click", () => {
+                chunkBody.classList.toggle("open");
+                chunkHeader.querySelector(".chunk-chevron").classList.toggle("collapsed");
+            });
+
+            chunkWrap.appendChild(chunkHeader);
+            chunkWrap.appendChild(chunkBody);
+            resultsContent.appendChild(chunkWrap);
             break;
         }
 

@@ -1,27 +1,3 @@
-"""
-LOGAI v2.1 — USAGE GUARD (ANTIGRAVITY)
-
-SUPABASE SETUP — Run these two SQL statements in your Supabase SQL editor:
-
-    CREATE TABLE anonymous_usage (
-      id            uuid primary key default gen_random_uuid(),
-      anon_id       text not null unique,
-      ip_address    text,
-      request_count int default 0,
-      last_request  timestamp with time zone default now()
-    );
-
-    CREATE TABLE user_usage (
-      id            uuid primary key default gen_random_uuid(),
-      user_id       uuid not null unique,
-      request_count int default 0,
-      last_request  timestamp with time zone default now()
-    );
-
-This module is intentionally isolated.
-It does NOT import or touch: AI pipeline, chunking, streaming, or JWT logic.
-"""
-
 from fastapi import HTTPException, Request
 from datetime import datetime, timezone
 

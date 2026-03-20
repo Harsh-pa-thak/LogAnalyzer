@@ -1,7 +1,7 @@
-from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from jose import jwt, jwk
 import requests
@@ -12,6 +12,7 @@ from supabase import create_client, Client
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTHESIS_PROMPT
+from usage_guard import usage_guard
 
 load_dotenv()
 
@@ -246,9 +247,22 @@ async def analyze_log(
 
 @app.post("/analyze-stream")
 async def analyze_log_stream(
+    request: Request,
     file: UploadFile = File(...),
-    user=Depends(get_current_user)
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ):
+    # ── Optional auth (anonymous users are allowed through to the guard) ──
+    user = None
+    if credentials:
+        try:
+            user = get_current_user(credentials)
+        except Exception:
+            user = None
+
+    # 🆕 USAGE GUARD — thin gate before any AI logic (antigravity, additive only)
+    await usage_guard(request, user, supabase_admin)
+
+    # ── Everything below is UNCHANGED ────────────────────────────────────
     if not file.filename.endswith(".txt"):
         return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
 
@@ -258,8 +272,9 @@ async def analyze_log_stream(
     if not log_text.strip():
         return JSONResponse({"error": "Empty file"}, status_code=400)
 
+    user_id = user["sub"] if user else ""
     return StreamingResponse(
-        _stream_analysis(log_text, user_id=user["sub"], file_name=file.filename),
+        _stream_analysis(log_text, user_id=user_id, file_name=file.filename),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

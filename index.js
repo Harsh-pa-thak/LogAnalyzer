@@ -203,12 +203,61 @@ function setStage(stage) {
     }
 }
 
+// #4 — Stat count-up animation
+function animateCount(el, target, duration = 700) {
+    const start = performance.now();
+    const from = parseInt(el.textContent.replace(/,/g, "")) || 0;
+    const step = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        el.textContent = Math.round(from + (target - from) * ease).toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+}
+
 function updateStats(stats) {
     if (!stats) return;
-    if (statLines && stats.total_lines !== undefined) statLines.textContent = stats.total_lines.toLocaleString();
-    if (statCritical && stats.critical !== undefined) statCritical.textContent = stats.critical.toLocaleString();
-    if (statErrors && stats.errors !== undefined) statErrors.textContent = stats.errors.toLocaleString();
-    if (statWarnings && stats.warnings !== undefined) statWarnings.textContent = stats.warnings.toLocaleString();
+    if (statLines && stats.total_lines !== undefined) animateCount(statLines, stats.total_lines);
+    if (statCritical && stats.critical !== undefined) animateCount(statCritical, stats.critical);
+    if (statErrors && stats.errors !== undefined) animateCount(statErrors, stats.errors);
+    if (statWarnings && stats.warnings !== undefined) animateCount(statWarnings, stats.warnings);
+}
+
+// #7 — Toast notification system
+function showToast(msg, type = "info", duration = 3000) {
+    const existing = document.getElementById("logaiToast");
+    if (existing) existing.remove();
+
+    const colors = {
+        info:    { bg: "rgba(59,130,246,0.15)",  border: "rgba(59,130,246,0.3)",  text: "#93c5fd" },
+        success: { bg: "rgba(16,185,129,0.15)",  border: "rgba(16,185,129,0.3)",  text: "#6ee7b7" },
+        error:   { bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.3)",   text: "#fca5a5" },
+    };
+    const c = colors[type] || colors.info;
+
+    const toast = document.createElement("div");
+    toast.id = "logaiToast";
+    toast.style.cssText = `
+        position:fixed;bottom:28px;right:28px;z-index:9999;
+        padding:12px 18px;border-radius:12px;
+        background:${c.bg};border:1px solid ${c.border};
+        color:${c.text};font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
+        backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,0.4);
+        opacity:0;transform:translateY(8px);
+        transition:opacity 0.25s ease,transform 0.25s ease;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+        toast.style.transform = "translateY(0)";
+    });
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(8px)";
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
 }
 
 function resetProgress() {
@@ -216,6 +265,7 @@ function resetProgress() {
     progressMessage.textContent = "Preparing...";
     setStage("");
 }
+
 
 
 

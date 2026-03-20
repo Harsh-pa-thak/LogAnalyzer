@@ -389,7 +389,6 @@ function showLimitModal(type) {
     const body  = isFree
         ? "You've used your <strong>3 free analyses</strong> for today.<br>Login to get 20 analyses per day."
         : "You've used your <strong>20 daily analyses</strong>.<br>Your limit resets at midnight UTC.";
-    const cta   = isFree ? "Sign In / Create Account" : "Got it";
 
     const modal = document.createElement("div");
     modal.id = "limitModal";

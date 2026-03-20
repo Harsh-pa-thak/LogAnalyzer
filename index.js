@@ -30,45 +30,45 @@ window.supabaseClient = supabaseClient;
 
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
-const fileInput      = document.getElementById("logFile");
-const fileInfo       = document.getElementById("fileInfo");
-const analyzeBtn     = document.getElementById("analyzeBtn");
-const emptyState     = document.getElementById("emptyState");
+const fileInput = document.getElementById("logFile");
+const fileInfo = document.getElementById("fileInfo");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const emptyState = document.getElementById("emptyState");
 const resultsContent = document.getElementById("resultsContent");
-const dropZone       = document.getElementById("dropZone");
-const appLoader      = document.getElementById("appLoader");
-const btnText        = analyzeBtn.querySelector(".btn-text");
-const spinner        = analyzeBtn.querySelector(".spinner");
+const dropZone = document.getElementById("dropZone");
+const appLoader = document.getElementById("appLoader");
+const btnText = analyzeBtn.querySelector(".btn-text");
+const spinner = analyzeBtn.querySelector(".spinner");
 
-const progressSection  = document.getElementById("progressSection");
-const progressBar      = document.getElementById("progressBar");
-const progressMessage  = document.getElementById("progressMessage");
-const stagePreprocess  = document.getElementById("stagePreprocess");
-const stageAnalyze     = document.getElementById("stageAnalyze");
-const stageSynthesize  = document.getElementById("stageSynthesize");
-const statLines        = document.getElementById("statLines");
-const statCritical     = document.getElementById("statCritical");
-const statErrors       = document.getElementById("statErrors");
-const statWarnings     = document.getElementById("statWarnings");
+const progressSection = document.getElementById("progressSection");
+const progressBar = document.getElementById("progressBar");
+const progressMessage = document.getElementById("progressMessage");
+const stagePreprocess = document.getElementById("stagePreprocess");
+const stageAnalyze = document.getElementById("stageAnalyze");
+const stageSynthesize = document.getElementById("stageSynthesize");
+const statLines = document.getElementById("statLines");
+const statCritical = document.getElementById("statCritical");
+const statErrors = document.getElementById("statErrors");
+const statWarnings = document.getElementById("statWarnings");
 
 // Auth UI elements
-const userEmailEl  = document.getElementById("userEmail");
+const userEmailEl = document.getElementById("userEmail");
 const userAvatarEl = document.getElementById("userAvatar");
-const loginCtaEl   = document.getElementById("loginCta");
-const logoutBtn    = document.getElementById("logoutBtn");
+const loginCtaEl = document.getElementById("loginCta");
+const logoutBtn = document.getElementById("logoutBtn");
 
 // ── Auth UI toggle (no page switch — dashboard is always visible) ─────────────
 function setAuthUI(user) {
     if (user) {
         // Logged-in state
-        userEmailEl.textContent  = user.email || "";
+        userEmailEl.textContent = user.email || "";
         const initials = (user.email || "?").slice(0, 2).toUpperCase();
         userAvatarEl.textContent = initials;
         userAvatarEl.style.display = "flex";
         loginCtaEl.classList.remove("visible");   // hide Login button
     } else {
         // Anonymous state
-        userEmailEl.textContent    = "";
+        userEmailEl.textContent = "";
         userAvatarEl.style.display = "none";
         loginCtaEl.classList.add("visible");      // show Login button
     }
@@ -396,7 +396,7 @@ function showLimitModal(type) {
 
     const isFree = type === "free";
     const title = isFree ? "Free Limit Reached" : "Daily Limit Reached";
-    const body  = isFree
+    const body = isFree
         ? "You've used your <strong>3 free analyses</strong> for today.<br>Login to get 20 analyses per day."
         : "You've used your <strong>20 daily analyses</strong>.<br>Your limit resets at midnight UTC.";
 

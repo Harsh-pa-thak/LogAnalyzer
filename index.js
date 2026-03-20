@@ -346,6 +346,10 @@ async function uploadLog() {
     const formData = new FormData();
     formData.append("file", file);
 
+    // #1 — Bump client-side usage counter (anonymous only)
+    const { data: sessionChk } = await supabaseClient.auth.getSession();
+    if (!sessionChk.session) bumpUsage();
+
     try {
         // Build headers — token is optional (anonymous users skip auth)
         const reqHeaders = { "x-anon-id": anonId };
@@ -505,9 +509,14 @@ function showLimitModal(type) {
 
     const isFree = type === "free";
     const title = isFree ? "Free Limit Reached" : "Daily Limit Reached";
+    // #15 — Countdown to midnight UTC
+    const now = new Date();
+    const midnightUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    const hoursLeft = Math.ceil((midnightUTC - now) / 3600000);
+    const countdownTxt = `Resets in ~${hoursLeft} hour${hoursLeft !== 1 ? "s" : ""}.`;
     const body = isFree
-        ? "You've used your <strong>3 free analyses</strong> for today.<br>Login to get 20 analyses per day."
-        : "You've used your <strong>20 daily analyses</strong>.<br>Your limit resets at midnight UTC.";
+        ? `You've used your <strong>3 free analyses</strong> for today.<br>Login to get 20 analyses per day.<br><span style="font-size:12px;color:#475569;">${countdownTxt}</span>`
+        : `You've used your <strong>20 daily analyses</strong>.<br><span style="font-size:12px;color:#475569;">${countdownTxt}</span>`;
 
     const modal = document.createElement("div");
     modal.id = "limitModal";

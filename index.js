@@ -230,9 +230,9 @@ function showToast(msg, type = "info", duration = 3000) {
     if (existing) existing.remove();
 
     const colors = {
-        info:    { bg: "rgba(59,130,246,0.15)",  border: "rgba(59,130,246,0.3)",  text: "#93c5fd" },
-        success: { bg: "rgba(16,185,129,0.15)",  border: "rgba(16,185,129,0.3)",  text: "#6ee7b7" },
-        error:   { bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.3)",   text: "#fca5a5" },
+        info: { bg: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.3)", text: "#93c5fd" },
+        success: { bg: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.3)", text: "#6ee7b7" },
+        error: { bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.3)", text: "#fca5a5" },
     };
     const c = colors[type] || colors.info;
 

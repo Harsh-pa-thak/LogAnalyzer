@@ -12,7 +12,7 @@
 
 ---
 
-## 📖 Overview
+##  Overview
 
 LogAI is a production-deployed AI-powered log analysis platform designed to help developers, DevOps engineers, and SRE teams diagnose system issues efficiently.
 
@@ -22,54 +22,54 @@ It converts raw log files into structured, actionable diagnostic reports using l
 
 ---
 
-## 💡 Business Value
+## Business Value
 
 Modern systems generate large volumes of logs that are difficult to analyze under time constraints.
 
 LogAI enables:
 
-- ⚡ Faster incident diagnosis
-- 🔧 Reduced debugging effort
-- 🔍 Clear root cause identification
-- 📋 Actionable remediation guidance
-- 🛡️ Controlled system usage with cost protection
-- 🔄 Seamless transition from anonymous to authenticated usage
+- Faster incident diagnosis
+- Reduced debugging effort
+- Clear root cause identification
+- Actionable remediation guidance
+- Controlled system usage with cost protection
+- Seamless transition from anonymous to authenticated usage
 
 The platform functions as an intelligent diagnostic layer for production environments.
 
 ---
 
-## 🚀 Core Capabilities
+## Core Capabilities
 
-### 🤖 AI-Powered Root Cause Analysis
+### AI-Powered Root Cause Analysis
 - Identifies critical failures and anomalies
 - Provides structured explanations
 - Suggests actionable remediation steps
 - Detects recurring or suspicious patterns
 
-### 📡 Real-Time Streaming Processing
+### Real-Time Streaming Processing
 - Server-Sent Events (SSE) for live updates
 - Chunk-level analysis visibility
 - Progressive result delivery
 
-### 🔓 Anonymous Access with Usage Control (v2.1)
+### Anonymous Access with Usage Control (v2.1)
 - No login required for initial usage
 - Daily usage limits enforced per user/session
 - Backend-controlled usage validation before AI execution
 - Seamless transition to authenticated usage after limits
 
-### 🔐 Secure Authentication
+### Secure Authentication
 - Supabase Auth integration
 - Server-side ES256 JWT verification
 - JWKS-based key validation
 - Strict per-user data isolation
 
-### 📚 Persistent Analysis History
+### Persistent Analysis History
 - Available for authenticated users
 - Timestamped reports with structured summaries
 - Historical retrieval and review
 
-### ⚙️ Intelligent Log Processing
+### Intelligent Log Processing
 - Severity classification (critical, error, warning, info)
 - Context-preserving chunking
 - Cost-aware AI orchestration
@@ -77,7 +77,7 @@ The platform functions as an intelligent diagnostic layer for production environ
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 User (Anonymous or Authenticated)
@@ -108,7 +108,7 @@ Google Gemini Flash
 
 ---
 
-## 🏛️ Architectural Principles
+## Architectural Principles
 
 - **Additive system design** – non-destructive feature evolution
 - **Zero trust** on client-side logic
@@ -119,7 +119,7 @@ Google Gemini Flash
 
 ---
 
-## 🔒 Security & Production Design
+## Security & Production Design
 
 | Layer | Implementation |
 |---|---|
@@ -133,7 +133,7 @@ Google Gemini Flash
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technologies |
 |---|---|
@@ -143,7 +143,7 @@ Google Gemini Flash
 
 ---
 
-## 📄 Supported Log Types
+## Supported Log Types
 
 - **Application logs** – Python, Node.js, Java
 - **System logs** – Linux, systemd, kernel
@@ -153,7 +153,7 @@ Google Gemini Flash
 
 ---
 
-## 🗺️ Product Roadmap
+## Product Roadmap
 
 ### Short-Term
 - [ ] Free-tier refinement and usage optimization
@@ -170,7 +170,7 @@ Google Gemini Flash
 
 ---
 
-## 📌 Version History
+## Version History
 
 | Version | Description |
 |---|---|
@@ -180,7 +180,7 @@ Google Gemini Flash
 
 ---
 
-## 👤 Author
+## Author
 
 **Harsh Pathak**
 [GitHub](https://github.com/Harsh-pa-thak)
@@ -189,6 +189,6 @@ Google Gemini Flash
 
 <div align="center">
 
-⭐ If you find LogAI useful, consider starring the repository ⭐
+If you find LogAI useful, consider starring the repository.
 
 </div>

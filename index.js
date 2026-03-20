@@ -568,6 +568,10 @@ function showLimitModal(type) {
 
 analyzeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
+    // #3 — Request notification permission on first analysis
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
     uploadLog();
 });
 
@@ -575,7 +579,7 @@ analyzeBtn.addEventListener("click", (e) => {
 document.getElementById("copyBtn").addEventListener("click", () => {
     const text = resultsContent.innerText;
     navigator.clipboard.writeText(text).then(() => {
-        showToast("Report copied to clipboard!", "success"); // #7 toast
+        showToast("Report copied to clipboard!", "success");
     });
 });
 
@@ -589,7 +593,26 @@ document.getElementById("downloadBtn").addEventListener("click", () => {
     a.download = "logai-report.md";
     a.click();
     URL.revokeObjectURL(url);
+    showToast("Report downloaded!", "success");
 });
 
+// #5 — New Analysis button (reset the whole UI)
+document.getElementById("newAnalysisBtn").addEventListener("click", () => {
+    fileInput.value = "";
+    fileInfo.textContent = "No file selected";
+    fileInfo.style.color = "";
+    analyzeBtn.disabled = true;
+    resultsContent.innerHTML = "";
+    resultsContent.classList.add("hidden");
+    emptyState.classList.remove("hidden");
+    progressSection.classList.add("hidden");
+    document.getElementById("statsSection").classList.add("hidden");
+    document.getElementById("copyBtn").style.display = "none";
+    document.getElementById("downloadBtn").style.display = "none";
+    document.getElementById("newAnalysisBtn").style.display = "none";
+    document.getElementById("filePreview").classList.remove("visible");
+    resetProgress();
+    showToast("Ready for a new analysis", "info");
+});
 
 // Sidebar — Dashboard link is now a plain <a> in HTML; no JS needed for nav.

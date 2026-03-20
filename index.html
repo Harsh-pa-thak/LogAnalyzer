@@ -399,6 +399,75 @@
             background: #475569;
         }
         .guest-chip.visible { display: flex; }
+
+        /* ── #2 Soft nudge banner ────────────────────────────────────── */
+        .nudge-banner {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.12);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12.5px;
+            color: #94a3b8;
+        }
+        .nudge-banner.visible { display: flex; }
+        .nudge-banner a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .nudge-banner a:hover { text-decoration: underline; }
+        .nudge-banner .nudge-close {
+            margin-left: auto;
+            background: none; border: none;
+            color: #475569; cursor: pointer;
+            font-size: 16px; line-height: 1;
+            padding: 0 4px;
+        }
+
+        /* ── #8 File preview ───────────────────────────────────────── */
+        .file-preview {
+            display: none;
+            gap: 12px;
+            margin-top: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .file-preview.visible { display: flex; }
+        .file-preview span {
+            background: rgba(148, 163, 184, 0.08);
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+
+        /* ── #5 New Analysis button ────────────────────────────────── */
+        .new-analysis-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 13px 20px;
+            margin-top: 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .new-analysis-btn:hover {
+            background: rgba(59, 130, 246, 0.16);
+            border-color: rgba(59, 130, 246, 0.35);
+        }
     </style>
 </head>
 
@@ -470,6 +539,13 @@
                     </div>
                 </header>
 
+                <!-- #2 Soft nudge banner (anonymous only) -->
+                <div class="nudge-banner" id="nudgeBanner">
+                    📢 Your analyses aren’t saved.
+                    <a href="login.html?return=index.html">Login to keep your history →</a>
+                    <button class="nudge-close" id="nudgeClose">×</button>
+                </div>
+
                 <div class="content-wrapper">
 
                     <section class="upload-section">
@@ -491,6 +567,11 @@
                                 <p>Drag &amp; drop your .txt file here or <span class="highlight-text">browse</span></p>
                                 <input type="file" id="logFile" accept=".txt" hidden>
                                 <div class="file-status" id="fileInfo">No file selected</div>
+                                <!-- #8 File preview -->
+                                <div class="file-preview" id="filePreview">
+                                    <span id="fileSizeInfo"></span>
+                                    <span id="fileChunkInfo"></span>
+                                </div>
                             </div>
 
                             <div class="upload-actions">
@@ -582,6 +663,14 @@
                                 </div>
                                 <div id="resultsContent" class="markdown-body hidden"></div>
                             </div>
+                            <!-- #5 New Analysis button -->
+                            <button class="new-analysis-btn" id="newAnalysisBtn">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                                    <polyline points="1 4 1 10 7 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Analyze Another File
+                            </button>
                         </div>
                     </section>
 

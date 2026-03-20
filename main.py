@@ -337,6 +337,12 @@ async def get_login_js():
     return FileResponse("login.js", media_type="application/javascript")
 
 
+@app.get("/settings.html", response_class=HTMLResponse)
+async def get_settings_page():
+    with open("settings.html", "r") as f:
+        return f.read()
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

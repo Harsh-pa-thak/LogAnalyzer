@@ -12,7 +12,7 @@
 
 ---
 
-##  Overview
+## Overview
 
 LogAI is a production-deployed AI-powered log analysis platform designed to help developers, DevOps engineers, and SRE teams diagnose system issues efficiently.
 

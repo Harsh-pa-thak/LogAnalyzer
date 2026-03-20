@@ -236,6 +236,24 @@
         .history-empty.hidden {
             display: none !important;
         }
+
+        /* #9 — History search */
+        .history-search {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #f1f5f9;
+            outline: none;
+            margin-bottom: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .history-search::placeholder { color: rgba(148, 163, 184, 0.4); }
+        .history-search:focus { border-color: rgba(59, 130, 246, 0.5); }
     </style>
 </head>
 
@@ -309,6 +327,8 @@
                                 <span class="history-count" id="historyCount"></span>
                             </div>
                             <div class="card-body history-body">
+                                <!-- #9 Search -->
+                                <input type="text" class="history-search" id="historySearch" placeholder="🔍 Search by filename...">
                                 <!-- Loading skeleton -->
                                 <div id="historySkeleton">
                                     <div class="history-skeleton-item"></div>

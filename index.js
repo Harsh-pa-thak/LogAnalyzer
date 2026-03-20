@@ -29,94 +29,52 @@ window.supabaseClient = supabaseClient;
 
 
 
-const fileInput = document.getElementById("logFile");
-const fileInfo = document.getElementById("fileInfo");
-const analyzeBtn = document.getElementById("analyzeBtn");
-const emptyState = document.getElementById("emptyState");
+// ── DOM refs ─────────────────────────────────────────────────────────────────
+const fileInput      = document.getElementById("logFile");
+const fileInfo       = document.getElementById("fileInfo");
+const analyzeBtn     = document.getElementById("analyzeBtn");
+const emptyState     = document.getElementById("emptyState");
 const resultsContent = document.getElementById("resultsContent");
-const dropZone = document.getElementById("dropZone");
-const appLoader = document.getElementById("appLoader");
-const btnText = analyzeBtn.querySelector(".btn-text");
-const spinner = analyzeBtn.querySelector(".spinner");
+const dropZone       = document.getElementById("dropZone");
+const appLoader      = document.getElementById("appLoader");
+const btnText        = analyzeBtn.querySelector(".btn-text");
+const spinner        = analyzeBtn.querySelector(".spinner");
 
-const progressSection = document.getElementById("progressSection");
-const progressBar = document.getElementById("progressBar");
-const progressMessage = document.getElementById("progressMessage");
-const stagePreprocess = document.getElementById("stagePreprocess");
-const stageAnalyze = document.getElementById("stageAnalyze");
-const stageSynthesize = document.getElementById("stageSynthesize");
-const statLines = document.getElementById("statLines");
-const statCritical = document.getElementById("statCritical");
-const statErrors = document.getElementById("statErrors");
-const statWarnings = document.getElementById("statWarnings");
+const progressSection  = document.getElementById("progressSection");
+const progressBar      = document.getElementById("progressBar");
+const progressMessage  = document.getElementById("progressMessage");
+const stagePreprocess  = document.getElementById("stagePreprocess");
+const stageAnalyze     = document.getElementById("stageAnalyze");
+const stageSynthesize  = document.getElementById("stageSynthesize");
+const statLines        = document.getElementById("statLines");
+const statCritical     = document.getElementById("statCritical");
+const statErrors       = document.getElementById("statErrors");
+const statWarnings     = document.getElementById("statWarnings");
 
-// ----------------------------------------------------------------
-// Auth View Elements
-// ----------------------------------------------------------------
-const loginView = document.getElementById("loginView");
-const dashboardView = document.getElementById("dashboardView");
-const loginEmailInput = document.getElementById("loginEmail");
-const loginPasswordInput = document.getElementById("loginPassword");
-const loginBtn = document.getElementById("loginBtn");
-const loginBtnText = document.getElementById("loginBtnText");
-const loginSpinner = document.getElementById("loginSpinner");
-const signupBtn = document.getElementById("signupBtn");
-const loginError = document.getElementById("loginError");
-const loginSuccess = document.getElementById("loginSuccess");
-const userEmailEl = document.getElementById("userEmail");
+// Auth UI elements
+const userEmailEl  = document.getElementById("userEmail");
 const userAvatarEl = document.getElementById("userAvatar");
-const logoutBtn = document.getElementById("logoutBtn");
+const loginCtaEl   = document.getElementById("loginCta");
+const logoutBtn    = document.getElementById("logoutBtn");
 
-// ----------------------------------------------------------------
-// View helpers
-// ----------------------------------------------------------------
-function showDashboard(user) {
-    loginView.classList.add("hidden");
-    dashboardView.classList.remove("hidden");
-    if (user && user.email) {
-        userEmailEl.textContent = user.email;
-        const initials = user.email.slice(0, 2).toUpperCase();
+// ── Auth UI toggle (no page switch — dashboard is always visible) ─────────────
+function setAuthUI(user) {
+    if (user) {
+        // Logged-in state
+        userEmailEl.textContent  = user.email || "";
+        const initials = (user.email || "?").slice(0, 2).toUpperCase();
         userAvatarEl.textContent = initials;
-    }
-}
-
-function showLogin() {
-    dashboardView.classList.add("hidden");
-    loginView.classList.remove("hidden");
-    loginError.classList.remove("visible");
-    loginSuccess.classList.remove("visible");
-    loginEmailInput.value = "";
-    loginPasswordInput.value = "";
-}
-
-function setLoginLoading(loading) {
-    loginBtn.disabled = loading;
-    signupBtn.disabled = loading;
-    loginBtnText.textContent = loading ? "Signing in..." : "Sign In";
-    if (loading) {
-        loginSpinner.classList.add("visible");
+        userAvatarEl.style.display = "flex";
+        loginCtaEl.classList.remove("visible");   // hide Login button
     } else {
-        loginSpinner.classList.remove("visible");
+        // Anonymous state
+        userEmailEl.textContent    = "";
+        userAvatarEl.style.display = "none";
+        loginCtaEl.classList.add("visible");      // show Login button
     }
 }
 
-function showAuthError(msg) {
-    loginError.textContent = msg;
-    loginError.classList.remove("success");
-    loginError.classList.add("error", "visible");
-    loginSuccess.classList.remove("visible");
-}
-
-function showAuthSuccess(msg) {
-    loginSuccess.textContent = msg;
-    loginSuccess.classList.remove("error");
-    loginSuccess.classList.add("success", "visible");
-    loginError.classList.remove("visible");
-}
-
-// ----------------------------------------------------------------
-// DOMContentLoaded — session check & app init
-// ----------------------------------------------------------------
+// ── DOMContentLoaded — always show dashboard, then resolve auth state ─────────
 window.addEventListener("DOMContentLoaded", async () => {
 
     marked.setOptions({
@@ -128,102 +86,37 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // Check for existing session
-    const { data } = await supabaseClient.auth.getSession();
-
+    // Fade out loader — dashboard is always accessible, no auth gate
     setTimeout(() => {
         appLoader.style.opacity = "0";
-        setTimeout(() => {
-            appLoader.style.display = "none";
-            if (data.session) {
-                showDashboard(data.session.user);
-            } else {
-                showLogin();
-            }
-        }, 500);
-    }, 800);
+        setTimeout(() => { appLoader.style.display = "none"; }, 500);
+    }, 600);
+
+    // Check session and update header UI only
+    const { data } = await supabaseClient.auth.getSession();
+    setAuthUI(data.session ? data.session.user : null);
+
+    // Keep UI in sync if the user logs in/out in another tab
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+        setAuthUI(session ? session.user : null);
+    });
 });
 
-// ----------------------------------------------------------------
-// Login
-// ----------------------------------------------------------------
-loginBtn.addEventListener("click", async () => {
-    const email = loginEmailInput.value.trim();
-    const password = loginPasswordInput.value;
-
-    if (!email || !password) {
-        showAuthError("Please enter your email and password.");
-        return;
-    }
-
-    setLoginLoading(true);
-    loginError.classList.add("hidden");
-    loginSuccess.classList.add("hidden");
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    setLoginLoading(false);
-
-    if (error) {
-        showAuthError(error.message || "Login failed. Please try again.");
-        return;
-    }
-
-    showDashboard(data.user);
-});
-
-// ----------------------------------------------------------------
-// Sign Up
-// ----------------------------------------------------------------
-signupBtn.addEventListener("click", async () => {
-    const email = loginEmailInput.value.trim();
-    const password = loginPasswordInput.value;
-
-    if (!email || !password) {
-        showAuthError("Please enter an email and password to create an account.");
-        return;
-    }
-
-    signupBtn.disabled = true;
-    signupBtn.textContent = "Creating account...";
-    loginError.classList.remove("visible");
-    loginSuccess.classList.remove("visible");
-
-    const { error } = await supabaseClient.auth.signUp({ email, password });
-
-    signupBtn.disabled = false;
-    signupBtn.textContent = "Create Account";
-
-    if (error) {
-        showAuthError(error.message || "Sign up failed. Please try again.");
-        return;
-    }
-
-    showAuthSuccess("Account created! Check your email to confirm your address, then sign in.");
-});
-
-// ----------------------------------------------------------------
-// Logout + Dropdown toggle
-// ----------------------------------------------------------------
+// ── Avatar dropdown ───────────────────────────────────────────────────────────
 const userDropdown = document.getElementById("userDropdown");
 
-// Toggle dropdown on avatar click
 userAvatarEl.addEventListener("click", (e) => {
     e.stopPropagation();
     userDropdown.classList.toggle("open");
 });
 
-// Close dropdown when clicking anywhere outside
-document.addEventListener("click", () => {
-    userDropdown.classList.remove("open");
-});
+document.addEventListener("click", () => userDropdown.classList.remove("open"));
 
 logoutBtn.addEventListener("click", async () => {
     userDropdown.classList.remove("open");
     await supabaseClient.auth.signOut();
-    showLogin();
+    setAuthUI(null);
 });
-
 
 
 // ----------------------------------------------------------------

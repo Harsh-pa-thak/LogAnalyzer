@@ -326,6 +326,17 @@ async def get_history_js():
     return FileResponse("history.js", media_type="application/javascript")
 
 
+@app.get("/login.html", response_class=HTMLResponse)
+async def get_login_page():
+    with open("login.html", "r") as f:
+        return f.read()
+
+
+@app.get("/login.js")
+async def get_login_js():
+    return FileResponse("login.js", media_type="application/javascript")
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

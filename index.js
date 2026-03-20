@@ -421,15 +421,29 @@ function showLimitModal(type) {
                 </div>
                 <h3 style="color:#f8fafc;font-size:18px;font-weight:700;margin:0 0 10px;letter-spacing:-0.3px;">${title}</h3>
                 <p style="color:#64748b;font-size:13.5px;line-height:1.6;margin:0 0 28px;">${body}</p>
-                <button id="limitModalCta" style="
+                ${isFree ? `
+                <button id="limitModalLogin" style="
                     width:100%;padding:13px 20px;
                     background:linear-gradient(135deg,#3b82f6,#6366f1);
                     border:none;border-radius:10px;
                     font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;
-                    color:#fff;cursor:pointer;
+                    color:#fff;cursor:pointer;margin-bottom:10px;
                     box-shadow:0 4px 16px rgba(59,130,246,0.35);
-                    transition:opacity 0.2s,transform 0.15s;
-                ">${cta}</button>
+                ">Login</button>
+                <button id="limitModalSignup" style="
+                    width:100%;padding:12px 20px;
+                    background:transparent;border:1px solid rgba(99,102,241,0.35);
+                    border-radius:10px;font-family:'Inter',sans-serif;
+                    font-size:14px;font-weight:500;color:#a5b4fc;cursor:pointer;margin-bottom:10px;
+                ">Create Account</button>` : `
+                <button id="limitModalGotIt" style="
+                    width:100%;padding:13px 20px;
+                    background:linear-gradient(135deg,#3b82f6,#6366f1);
+                    border:none;border-radius:10px;
+                    font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;
+                    color:#fff;cursor:pointer;margin-bottom:10px;
+                    box-shadow:0 4px 16px rgba(59,130,246,0.35);
+                ">Got it</button>`}
                 <button id="limitModalClose" style="
                     margin-top:12px;width:100%;padding:11px 20px;
                     background:transparent;border:1px solid rgba(148,163,184,0.14);
@@ -442,10 +456,18 @@ function showLimitModal(type) {
     `;
     document.body.appendChild(modal);
 
-    document.getElementById("limitModalCta").addEventListener("click", () => {
-        modal.remove();
-        if (isFree) showLogin();
-    });
+    if (isFree) {
+        document.getElementById("limitModalLogin").addEventListener("click", () => {
+            modal.remove();
+            window.location.href = "login.html?return=index.html";
+        });
+        document.getElementById("limitModalSignup").addEventListener("click", () => {
+            modal.remove();
+            window.location.href = "login.html?return=index.html";
+        });
+    } else {
+        document.getElementById("limitModalGotIt").addEventListener("click", () => modal.remove());
+    }
     document.getElementById("limitModalClose").addEventListener("click", () => modal.remove());
     document.getElementById("limitModalBackdrop").addEventListener("click", (e) => {
         if (e.target === document.getElementById("limitModalBackdrop")) modal.remove();

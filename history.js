@@ -127,6 +127,16 @@ async function fetchHistory() {
     }
 }
 
+// #9 — Client-side search filter
+document.getElementById("historySearch").addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase();
+    const items = historyList.querySelectorAll(".history-item");
+    items.forEach(item => {
+        const filename = item.querySelector(".history-filename")?.textContent.toLowerCase() || "";
+        item.style.display = filename.includes(query) ? "" : "none";
+    });
+});
+
 function renderHistoryItem(item) {
     const el = document.createElement("div");
     el.className = "history-item";

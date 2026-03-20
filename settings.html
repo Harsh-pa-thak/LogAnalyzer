@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogAI — Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .settings-card {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-label {
+            font-size: 14px;
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+        .settings-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .settings-badge {
+            padding: 5px 12px;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .coming-soon {
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="bg-glow"></div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <h1>LogAI</h1>
+            </div>
+            <nav>
+                <a href="index.html">Dashboard</a>
+                <a href="history.html">History</a>
+                <a href="settings.html" class="active">Settings</a>
+            </nav>
+            <div class="status-indicator">
+                <span class="dot online"></span> System Operational
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h2>Settings</h2>
+            </header>
+
+            <div class="content-wrapper">
+                <section>
+                    <div class="card settings-card">
+                        <div class="card-header"><h3>Preferences</h3></div>
+                        <div class="card-body">
+                            <div class="settings-item">
+                                <div>
+                                    <div class="settings-label">Analysis Model</div>
+                                    <div class="settings-desc">AI model used for log analysis</div>
+                                </div>
+                                <span class="settings-badge">Gemini 2.0 Flash</span>
+                            </div>
+                            <div class="settings-item">
+                                <div>
+                                    <div class="settings-label">Daily Limit</div>
+                                    <div class="settings-desc">Max analyses per day</div>
+                                </div>
+                                <span class="settings-badge">3 (free) / 20 (logged in)</span>
+                            </div>
+                            <div class="settings-item">
+                                <div>
+                                    <div class="settings-label">Theme</div>
+                                    <div class="settings-desc">Interface appearance</div>
+                                </div>
+                                <span class="settings-badge">Dark</span>
+                            </div>
+                            <div class="coming-soon">More settings coming soon ✨</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

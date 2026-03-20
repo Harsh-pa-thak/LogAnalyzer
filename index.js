@@ -8,6 +8,30 @@ if (!anonId) {
     localStorage.setItem("anon_id", anonId);
 }
 
+// #1 — Usage counter (client-side tracking per day)
+const ANON_LIMIT = 3;
+function getUsageToday() {
+    const stored = JSON.parse(localStorage.getItem("usage_today") || "{}");
+    const today = new Date().toISOString().slice(0, 10);
+    if (stored.date !== today) return { date: today, count: 0 };
+    return stored;
+}
+function bumpUsage() {
+    const u = getUsageToday();
+    u.count++;
+    localStorage.setItem("usage_today", JSON.stringify(u));
+    updateUsageBadge();
+}
+function updateUsageBadge() {
+    const u = getUsageToday();
+    const left = Math.max(0, ANON_LIMIT - u.count);
+    const el = document.getElementById("usageText");
+    if (el) el.textContent = `${left} of ${ANON_LIMIT} left`;
+    // Change dot color when running low
+    const dot = document.querySelector(".usage-counter .usage-dot");
+    if (dot) dot.style.background = left === 0 ? "#ef4444" : left === 1 ? "#eab308" : "#3b82f6";
+}
+
 if (!window.supabase) {
     console.error("[LogAI] Supabase CDN failed to load.");
 }
@@ -69,12 +93,15 @@ function setAuthUI(user) {
         loginCtaEl.classList.remove("visible");
         guestChipEl.classList.remove("visible");
         document.getElementById("nudgeBanner").classList.remove("visible"); // #2
+        document.getElementById("usageCounter").classList.remove("visible"); // #1
     } else {
         // Anonymous state
         userEmailEl.textContent = "";
         userAvatarEl.style.display = "none";
         loginCtaEl.classList.add("visible");
         guestChipEl.classList.add("visible");
+        document.getElementById("usageCounter").classList.add("visible"); // #1
+        updateUsageBadge(); // #1
         // #2 Show nudge unless user dismissed it this session
         if (!sessionStorage.getItem("nudge_dismissed")) {
             document.getElementById("nudgeBanner").classList.add("visible");

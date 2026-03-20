@@ -549,9 +549,7 @@ analyzeBtn.addEventListener("click", (e) => {
 document.getElementById("copyBtn").addEventListener("click", () => {
     const text = resultsContent.innerText;
     navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById("copyBtn");
-        btn.title = "Copied!";
-        setTimeout(() => { btn.title = "Copy report"; }, 2000);
+        showToast("Report copied to clipboard!", "success"); // #7 toast
     });
 });
 

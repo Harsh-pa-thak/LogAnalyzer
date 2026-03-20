@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogAI — Sign In</title>
+    <meta name="description" content="Sign in to LogAI to unlock extended usage and history.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .lc {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(17, 25, 45, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 24px;
+            padding: 44px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.03),
+                        0 32px 64px rgba(0,0,0,0.6),
+                        0 0 80px rgba(59,130,246,0.08);
+            backdrop-filter: blur(24px);
+        }
+        .lc-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+            text-decoration: none;
+        }
+        .lc-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(99,102,241,0.2));
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: #60a5fa; flex-shrink: 0;
+        }
+        .lc-brand-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 20px; font-weight: 700;
+            color: #f8fafc; letter-spacing: -0.5px;
+        }
+        .lc-back {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12.5px; color: #475569;
+            text-decoration: none; margin-bottom: 28px;
+            transition: color 0.2s;
+        }
+        .lc-back:hover { color: #94a3b8; }
+        .lc-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 22px; font-weight: 700;
+            color: #f8fafc; letter-spacing: -0.5px; margin-bottom: 6px;
+        }
+        .lc-sub {
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px; color: #64748b;
+            margin-bottom: 28px; line-height: 1.5;
+        }
+        .lc-alert {
+            border-radius: 10px; padding: 11px 14px;
+            font-family: 'Inter', sans-serif; font-size: 13px;
+            line-height: 1.5; margin-bottom: 16px; display: none;
+        }
+        .lc-alert.visible { display: block; }
+        .lc-alert.error {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.25); color: #f87171;
+        }
+        .lc-alert.success {
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.22); color: #34d399;
+        }
+        .lc-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .lc-field label {
+            font-family: 'Inter', sans-serif; font-size: 12.5px;
+            font-weight: 600; color: #94a3b8; letter-spacing: 0.3px; text-transform: uppercase;
+        }
+        .lc-field input {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 10px; padding: 12px 16px;
+            font-family: 'Inter', sans-serif; font-size: 14px;
+            color: #f1f5f9; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%; box-sizing: border-box;
+        }
+        .lc-field input::placeholder { color: rgba(148,163,184,0.35); }
+        .lc-field input:focus {
+            border-color: rgba(59,130,246,0.6);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        .lc-btn-primary {
+            margin-top: 8px; width: 100%; padding: 13px 20px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            border: none; border-radius: 10px;
+            font-family: 'Inter', sans-serif; font-size: 14.5px; font-weight: 600;
+            color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+            transition: opacity 0.2s, transform 0.15s; position: relative; overflow: hidden;
+        }
+        .lc-btn-primary::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+            pointer-events: none;
+        }
+        .lc-btn-primary:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+        .lc-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+        .lc-btn-secondary {
+            margin-top: 10px; width: 100%; padding: 12px 20px;
+            background: transparent; border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 10px; font-family: 'Inter', sans-serif;
+            font-size: 14px; font-weight: 500; color: #94a3b8; cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+        .lc-btn-secondary:hover:not(:disabled) {
+            border-color: rgba(148,163,184,0.35); color: #f1f5f9;
+            background: rgba(148,163,184,0.05);
+        }
+        .lc-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .lc-spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-top-color: #fff; border-radius: 50%;
+            animation: lc-spin 0.75s linear infinite;
+            display: none; flex-shrink: 0;
+        }
+        .lc-spinner.visible { display: block; }
+        @keyframes lc-spin { to { transform: rotate(360deg); } }
+        .lc-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0 0; color: #334155;
+            font-size: 12px; font-family: 'Inter', sans-serif;
+        }
+        .lc-divider::before, .lc-divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(148,163,184,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="bg-glow"></div>
+
+    <div class="lc">
+        <a href="index.html" class="lc-brand">
+            <div class="lc-logo">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="lc-brand-name">LogAI</span>
+        </a>
+
+        <a href="index.html" class="lc-back">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to dashboard
+        </a>
+
+        <div class="lc-title">Welcome back</div>
+        <div class="lc-sub">Sign in to unlock 20 daily analyses and full history access.</div>
+
+        <div class="lc-alert error" id="loginError"></div>
+        <div class="lc-alert success" id="loginSuccess"></div>
+
+        <div class="lc-field">
+            <label for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="lc-field">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+
+        <button class="lc-btn-primary" id="loginBtn">
+            <span id="loginBtnText">Sign In</span>
+            <div class="lc-spinner" id="loginSpinner"></div>
+        </button>
+
+        <div class="lc-divider">or</div>
+
+        <button class="lc-btn-secondary" id="signupBtn">Create Account</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="login.js"></script>
+</body>
+</html>

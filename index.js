@@ -67,15 +67,26 @@ function setAuthUI(user) {
         userAvatarEl.textContent = initials;
         userAvatarEl.style.display = "flex";
         loginCtaEl.classList.remove("visible");
-        guestChipEl.classList.remove("visible");   // #13 hide guest chip
+        guestChipEl.classList.remove("visible");
+        document.getElementById("nudgeBanner").classList.remove("visible"); // #2
     } else {
         // Anonymous state
         userEmailEl.textContent = "";
         userAvatarEl.style.display = "none";
         loginCtaEl.classList.add("visible");
-        guestChipEl.classList.add("visible");      // #13 show guest chip
+        guestChipEl.classList.add("visible");
+        // #2 Show nudge unless user dismissed it this session
+        if (!sessionStorage.getItem("nudge_dismissed")) {
+            document.getElementById("nudgeBanner").classList.add("visible");
+        }
     }
 }
+
+// #2 — Nudge banner dismiss
+document.getElementById("nudgeClose").addEventListener("click", () => {
+    document.getElementById("nudgeBanner").classList.remove("visible");
+    sessionStorage.setItem("nudge_dismissed", "1");
+});
 
 // ── DOMContentLoaded — always show dashboard, then resolve auth state ─────────
 window.addEventListener("DOMContentLoaded", async () => {
@@ -172,10 +183,19 @@ fileInput.addEventListener("change", () => {
 
 function handleFiles(files) {
     if (files.length > 0) {
-        fileInfo.textContent = files[0].name;
+        const f = files[0];
+        fileInfo.textContent = f.name;
         fileInput.files = files;
         analyzeBtn.disabled = false;
         fileInfo.style.color = "#3b82f6";
+
+        // #8 — File preview (size + estimated chunks)
+        const sizeKB = (f.size / 1024).toFixed(1);
+        const sizeTxt = f.size >= 1048576 ? (f.size / 1048576).toFixed(1) + " MB" : sizeKB + " KB";
+        document.getElementById("fileSizeInfo").textContent = sizeTxt;
+        const estChunks = Math.max(1, Math.ceil(f.size / 30000)); // ~30KB per chunk
+        document.getElementById("fileChunkInfo").textContent = "~" + estChunks + " chunk" + (estChunks > 1 ? "s" : "");
+        document.getElementById("filePreview").classList.add("visible");
     }
 }
 
@@ -429,6 +449,12 @@ function handleSSEEvent(data) {
             // Show copy & download buttons
             document.getElementById("copyBtn").style.display = "flex";
             document.getElementById("downloadBtn").style.display = "flex";
+            // #5 — Show New Analysis button
+            document.getElementById("newAnalysisBtn").style.display = "flex";
+            // #3 — Browser notification (only if tab is in background)
+            if (document.hidden && Notification.permission === "granted") {
+                new Notification("LogAI", { body: "Your log analysis is complete!", icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" });
+            }
             break;
 
         case "error":

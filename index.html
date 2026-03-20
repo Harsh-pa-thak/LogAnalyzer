@@ -368,6 +368,37 @@
             background: rgba(239, 68, 68, 0.1);
             color: #f87171;
         }
+
+        /* ── #11 Page fade-in ───────────────────────────────────────── */
+        #dashboardView {
+            opacity: 0;
+            transition: opacity 0.45s ease;
+        }
+        #dashboardView.visible {
+            opacity: 1;
+        }
+
+        /* ── #13 Guest chip ─────────────────────────────────────────── */
+        .guest-chip {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            background: rgba(148, 163, 184, 0.07);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 20px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            pointer-events: none;
+        }
+        .guest-chip .guest-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #475569;
+        }
+        .guest-chip.visible { display: flex; }
     </style>
 </head>
 
@@ -405,6 +436,10 @@
                     <h2>Log Analysis Dashboard</h2>
                     <div class="user-profile" id="userProfile">
                         <!-- Shown when NOT logged in -->
+                        <div class="guest-chip" id="guestChip">
+                            <span class="guest-dot"></span>
+                            Guest · Free
+                        </div>
                         <a href="login.html" class="login-cta" id="loginCta">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                 <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor"

@@ -10,3 +10,4 @@
 - Deployment on Netlify + Render 
 - Limited Anonymous usage 
 - Unlimited Paid usgae
+- Multitheam pages added 

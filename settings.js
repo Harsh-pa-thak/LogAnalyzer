@@ -39,27 +39,20 @@ const THEME_KEY = "logai_theme";
 
 // ── Apply theme globally ──────────────────────────────────────────────────────
 function applyTheme(themeId) {
-    const theme = THEMES[themeId] || THEMES.dark;
-    let link = document.getElementById("theme-css");
-    if (!link) {
-        link = document.createElement("link");
-        link.id = "theme-css";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-    }
-    link.href = theme.file;
+    if (!THEMES[themeId]) themeId = 'dark';
+    document.documentElement.setAttribute('data-theme', themeId);
     localStorage.setItem(THEME_KEY, themeId);
-    document.documentElement.setAttribute("data-theme", themeId);
 }
 
 // ── Load saved theme on any page ─────────────────────────────────────────────
 function loadSavedTheme() {
-    const saved = localStorage.getItem(THEME_KEY) || "dark";
-    applyTheme(saved);
+    const saved = localStorage.getItem(THEME_KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
 }
 
-// Call immediately (anti-FOUC)
+// Apply immediately when the script loads (backup for pages that omit inline script)
 loadSavedTheme();
+
 
 // ── Settings page: build theme grid ──────────────────────────────────────────
 function buildThemeGrid() {

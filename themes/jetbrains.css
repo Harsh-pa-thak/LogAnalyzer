@@ -1,0 +1,79 @@
+/*
+  LogAI — JetBrains Darcula Theme
+  Inspired by IntelliJ IDEA Darcula color scheme
+*/
+
+:root {
+    --bg-primary:       #1e1f22;
+    --bg-secondary:     #2b2d30;
+    --bg-card:          rgba(43, 45, 48, 0.92);
+    --bg-input:         rgba(30, 31, 34, 0.80);
+    --bg-input-hover:   rgba(43, 45, 48, 0.96);
+    --bg-hover:         rgba(77, 80, 84, 0.30);
+    --bg-sidebar:       rgba(30, 31, 34, 0.99);
+    --bg-topbar:        rgba(30, 31, 34, 0.75);
+    --bg-dropdown:      rgba(43, 45, 48, 0.99);
+    --bg-loader:        #1e1f22;
+    --bg-modal:         rgba(43, 45, 48, 0.99);
+    --bg-tag:           rgba(77, 80, 84, 0.35);
+    --bg-stat-card:     rgba(43, 45, 48, 0.88);
+    --bg-login-card:    rgba(43, 45, 48, 0.96);
+
+    --bg-gradient-1:    rgba(255, 140, 0, 0.08);
+    --bg-gradient-2:    rgba(152, 118, 170, 0.08);
+    --bg-glow-start:    #2b2d30;
+    --bg-glow-end:      #cc7832;
+
+    --border:           rgba(77, 80, 84, 0.80);
+    --border-subtle:    rgba(77, 80, 84, 0.50);
+    --border-focus:     #cc7832;
+    --border-card:      rgba(77, 80, 84, 0.75);
+    --border-input:     rgba(77, 80, 84, 0.70);
+
+    --text-primary:     #bcbec4;
+    --text-secondary:   #a8acb3;
+    --text-body:        #9da0a8;
+    --text-muted:       #7a7e85;
+    --text-subtle:      #5a5d63;
+    --text-placeholder: rgba(122, 126, 133, 0.55);
+
+    --accent:           #cc7832;
+    --accent-hover:     #e0903c;
+    --accent-glow:      rgba(204, 120, 50, 0.28);
+    --accent-soft:      rgba(204, 120, 50, 0.12);
+    --accent-soft-border: rgba(204, 120, 50, 0.28);
+    --accent-gradient:  linear-gradient(135deg, #cc7832, #9876aa);
+    --accent-text:      #cc7832;
+
+    --success:          #6a8759;
+    --success-soft:     rgba(106, 135, 89, 0.14);
+    --success-text:     #6a8759;
+    --warning:          #cca009;
+    --warning-soft:     rgba(204, 160, 9, 0.12);
+    --error:            #ff6b68;
+    --error-soft:       rgba(255, 107, 104, 0.12);
+    --error-text:       #ff6b68;
+    --critical:         #ff6b68;
+
+    --code-bg:          #1e1f22;
+    --code-text:        #a9b7c6;
+    --code-inline-bg:   rgba(77, 80, 84, 0.30);
+
+    --shimmer-a:        rgba(43, 45, 48, 0.70);
+    --shimmer-b:        rgba(60, 63, 65, 0.90);
+
+    --history-item-bg:  rgba(43, 45, 48, 0.70);
+    --history-item-hover-bg: rgba(43, 45, 48, 0.96);
+    --history-item-hover-border: rgba(204, 120, 50, 0.38);
+
+    --detail-meta-bg:   rgba(30, 31, 34, 0.70);
+    --detail-report-bg: rgba(30, 31, 34, 0.55);
+
+    --logo-bg:          rgba(204, 120, 50, 0.12);
+    --shadow-card:      0 8px 32px rgba(0, 0, 0, 0.50);
+    --shadow-login:     0 24px 56px rgba(0, 0, 0, 0.65), 0 0 60px rgba(204, 120, 50, 0.08);
+    --backdrop-blur:    blur(10px);
+    --backdrop-blur-heavy: blur(18px);
+    --scrollbar-thumb:  rgba(77, 80, 84, 0.60);
+    --scrollbar-track:  transparent;
+}

@@ -4,603 +4,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogAI - Log Analysis</title>
+    <title>LogAI — Log Analysis Dashboard</title>
+    <meta name="description" content="AI-powered log analysis. Upload your .txt log files and get instant root-cause analysis powered by Gemini.">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+    <!-- Anti-FOUC: load saved theme immediately before any rendering -->
+    <script>
+        (function () {
+            var t = localStorage.getItem("logai_theme") || "dark";
+            var link = document.createElement("link");
+            link.id  = "theme-css";
+            link.rel = "stylesheet";
+            link.href = "themes/" + t + ".css";
+            document.head.appendChild(link);
+        })();
+    </script>
+
+    <!-- Base styles -->
     <link rel="stylesheet" href="style.css">
+    <!-- Page-specific styles -->
+    <link rel="stylesheet" href="css/index.css">
 
+    <!-- Markdown + Syntax highlight -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
-    <style>
-        #loginView {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        #loginView.hidden {
-            display: none;
-        }
-
-        #dashboardView.hidden {
-            display: none;
-        }
-
-        .lc {
-            width: 100%;
-            max-width: 400px;
-            background: rgba(17, 25, 45, 0.85);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 24px;
-            padding: 44px 40px 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            box-shadow:
-                0 0 0 1px rgba(255, 255, 255, 0.03),
-                0 32px 64px rgba(0, 0, 0, 0.6),
-                0 0 80px rgba(59, 130, 246, 0.08);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-        }
-
-        .lc-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 24px;
-        }
-
-        .lc-logo {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.2));
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #60a5fa;
-            flex-shrink: 0;
-        }
-
-        .lc-brand-name {
-            font-family: 'Inter', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: #f8fafc;
-            letter-spacing: -0.5px;
-        }
-
-        .lc-title {
-            font-family: 'Inter', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: #f8fafc;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-        }
-
-        .lc-sub {
-            font-family: 'Inter', sans-serif;
-            font-size: 13.5px;
-            color: #64748b;
-            margin-bottom: 28px;
-            line-height: 1.5;
-        }
-
-        .lc-alert {
-            border-radius: 10px;
-            padding: 11px 14px;
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 16px;
-            display: none;
-        }
-
-        .lc-alert.visible {
-            display: block;
-        }
-
-        .lc-alert.error {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #f87171;
-        }
-
-        .lc-alert.success {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.22);
-            color: #34d399;
-        }
-
-        .lc-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-
-        .lc-field label {
-            font-family: 'Inter', sans-serif;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #94a3b8;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-
-        .lc-field input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            color: #f1f5f9;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .lc-field input::placeholder {
-            color: rgba(148, 163, 184, 0.35);
-        }
-
-        .lc-field input:focus {
-            border-color: rgba(59, 130, 246, 0.6);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-        }
-
-        /* Buttons */
-        .lc-btn-primary {
-            margin-top: 8px;
-            width: 100%;
-            padding: 13px 20px;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            border: none;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14.5px;
-            font-weight: 600;
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
-            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .lc-btn-primary::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent);
-            pointer-events: none;
-        }
-
-        .lc-btn-primary:hover:not(:disabled) {
-            opacity: 0.92;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(59, 130, 246, 0.45);
-        }
-
-        .lc-btn-primary:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .lc-btn-primary:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
-
-        .lc-btn-secondary {
-            margin-top: 10px;
-            width: 100%;
-            padding: 12px 20px;
-            background: transparent;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: border-color 0.2s, color 0.2s, background 0.2s;
-        }
-
-        .lc-btn-secondary:hover:not(:disabled) {
-            border-color: rgba(148, 163, 184, 0.35);
-            color: #f1f5f9;
-            background: rgba(148, 163, 184, 0.05);
-        }
-
-        .lc-btn-secondary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .lc-spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: lc-spin 0.75s linear infinite;
-            display: none;
-            flex-shrink: 0;
-        }
-
-        .lc-spinner.visible {
-            display: block;
-        }
-
-        @keyframes lc-spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .lc-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0 0;
-            color: #334155;
-            font-size: 12px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .lc-divider::before,
-        .lc-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(148, 163, 184, 0.1);
-        }
-
-        .user-profile {
-            position: relative;
-        }
-
-        .user-email-text {
-            font-size: 13px;
-            color: #64748b;
-            max-width: 180px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .avatar {
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Login CTA button (shown when not authenticated) */
-        .login-cta {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 18px;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            border: none;
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 13.5px;
-            font-weight: 600;
-            color: #fff;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
-            transition: opacity 0.2s, transform 0.15s;
-        }
-
-        .login-cta:hover {
-            opacity: 0.88;
-            transform: translateY(-1px);
-        }
-
-        .login-cta.visible {
-            display: flex;
-        }
-
-        .user-dropdown {
-            position: absolute;
-            top: calc(100% + 12px);
-            right: 0;
-            background: rgba(10, 15, 30, 0.97);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 12px;
-            backdrop-filter: blur(16px);
-            min-width: 160px;
-            padding: 6px;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-8px) scale(0.97);
-            transition: opacity 0.18s ease, transform 0.18s ease;
-            z-index: 300;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .user-dropdown.open {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0) scale(1);
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-        }
-
-        .dropdown-item:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-        }
-
-        /* ── #11 Page fade-in ───────────────────────────────────────── */
-        #dashboardView {
-            opacity: 0;
-            transition: opacity 0.45s ease;
-        }
-        #dashboardView.visible {
-            opacity: 1;
-        }
-
-        /* ── #13 Guest chip ─────────────────────────────────────────── */
-        .guest-chip {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 11px;
-            background: rgba(148, 163, 184, 0.07);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 20px;
-            font-family: 'Inter', sans-serif;
-            font-size: 12px;
-            font-weight: 500;
-            color: #64748b;
-            pointer-events: none;
-        }
-        .guest-chip .guest-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #475569;
-        }
-        .guest-chip.visible { display: flex; }
-
-        /* ── #1 Usage counter badge ──────────────────────────── */
-        .usage-counter {
-            display: none;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 11px;
-            background: rgba(148, 163, 184, 0.07);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 20px;
-            font-family: 'Inter', sans-serif;
-            font-size: 11.5px;
-            color: #64748b;
-        }
-        .usage-counter.visible { display: flex; }
-        .usage-counter .usage-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #3b82f6;
-        }
-
-        /* ── #2 Soft nudge banner ────────────────────────────────────── */
-        .nudge-banner {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(59, 130, 246, 0.06);
-            border: 1px solid rgba(59, 130, 246, 0.12);
-            border-radius: 10px;
-            margin-bottom: 16px;
-            font-family: 'Inter', sans-serif;
-            font-size: 12.5px;
-            color: #94a3b8;
-        }
-        .nudge-banner.visible { display: flex; }
-        .nudge-banner a {
-            color: #60a5fa;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .nudge-banner a:hover { text-decoration: underline; }
-        .nudge-banner .nudge-close {
-            margin-left: auto;
-            background: none; border: none;
-            color: #475569; cursor: pointer;
-            font-size: 16px; line-height: 1;
-            padding: 0 4px;
-        }
-
-        /* ── #8 File preview ───────────────────────────────────────── */
-        .file-preview {
-            display: none;
-            gap: 12px;
-            margin-top: 8px;
-            font-family: 'Inter', sans-serif;
-            font-size: 12px;
-            color: #64748b;
-        }
-        .file-preview.visible { display: flex; }
-        .file-preview span {
-            background: rgba(148, 163, 184, 0.08);
-            padding: 3px 9px;
-            border-radius: 6px;
-        }
-
-        /* ── #5 New Analysis button ────────────────────────────────── */
-        .new-analysis-btn {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 13px 20px;
-            margin-top: 16px;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 10px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            color: #60a5fa;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .new-analysis-btn:hover {
-            background: rgba(59, 130, 246, 0.16);
-            border-color: rgba(59, 130, 246, 0.35);
-        }
-
-        /* ── #6 Collapsible chunk accordion ───────────────── */
-        .chunk-section {
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 10px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-        .chunk-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 10px 14px;
-            user-select: none;
-        }
-        .chunk-toggle:hover { background: rgba(148, 163, 184, 0.04); }
-        .chunk-chevron {
-            transition: transform 0.2s;
-        }
-        .chunk-chevron.collapsed {
-            transform: rotate(-90deg);
-        }
-        .chunk-collapsible {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        .chunk-collapsible.open {
-            max-height: 5000px;
-        }
-
-        /* ── #14 Mobile sidebar collapse ──────────────────── */
-        .hamburger-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 6px;
-        }
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 10, 0.6);
-            z-index: 199;
-        }
-        .sidebar-backdrop.open { display: block; }
-
-        @media (max-width: 768px) {
-            .hamburger-btn { display: block; }
-            .sidebar {
-                position: fixed;
-                left: -260px;
-                top: 0;
-                bottom: 0;
-                z-index: 200;
-                transition: left 0.25s ease;
-                width: 240px;
-            }
-            .sidebar.open { left: 0; }
-            .app-container {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </head>
 
 <body>
     <div class="bg-gradient"></div>
     <div class="bg-glow"></div>
 
-    <!-- Dashboard — always visible, no login gate -->
+    <!-- ── APP LOADER ───────────────────────────────────────────────────── -->
+    <div id="appLoader">
+        <div class="loader-content">
+            <div class="loader-logo-ring"></div>
+            <h2>Initializing LogAI…</h2>
+        </div>
+    </div>
+
+    <!-- ── DASHBOARD ────────────────────────────────────────────────────── -->
     <div id="dashboardView">
-        <!-- #14 Mobile sidebar backdrop -->
+
+        <!-- Mobile sidebar backdrop -->
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
         <div class="app-container">
+
+            <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
             <aside class="sidebar">
                 <div class="brand">
                     <div class="logo-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
+                                stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
                     <h1>LogAI</h1>
                 </div>
 
                 <nav>
-                    <a href="index.html" class="active" id="navDashboard">Dashboard</a>
-                    <a href="history.html" id="navHistory">History</a>
-                    <a href="settings.html" id="navSettings">Settings</a>
+                    <a href="index.html" class="active" id="navDashboard">
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="history.html" id="navHistory">
+                        <span>History</span>
+                    </a>
+                    <a href="settings.html" id="navSettings">
+                        <span>Settings</span>
+                    </a>
                 </nav>
 
                 <div class="status-indicator">
-                    <span class="dot online"></span> System Operational
+                    <span class="dot online"></span>
+                    System Operational
                 </div>
             </aside>
 
+            <!-- ── MAIN CONTENT ──────────────────────────────────────────── -->
             <main class="main-content">
+
+                <!-- Top Bar -->
                 <header class="top-bar">
-                    <!-- #14 Hamburger for mobile -->
-                    <button class="hamburger-btn" id="hamburgerBtn">
+                    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="3" y1="6"  x2="21" y2="6"  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </button>
                     <h2>Log Analysis Dashboard</h2>
+
                     <div class="user-profile" id="userProfile">
-                        <!-- Shown when NOT logged in -->
+                        <!-- Guest state -->
                         <div class="guest-chip" id="guestChip">
                             <span class="guest-dot"></span>
                             Guest · Free
@@ -610,28 +114,22 @@
                             <span id="usageText">3 of 3 left</span>
                         </div>
                         <a href="login.html" class="login-cta" id="loginCta">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
-                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" />
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                             Login
                         </a>
-                        <!-- Shown when logged in -->
+                        <!-- Logged-in state -->
                         <span id="userEmail" class="user-email-text"></span>
-                        <div class="avatar" id="userAvatar" style="display:none;">AU</div>
+                        <div class="avatar" id="userAvatar" style="display:none;" role="button" aria-label="User menu">AU</div>
                         <div class="user-dropdown" id="userDropdown">
                             <button class="dropdown-item" id="logoutBtn">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                    <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                                 Sign out
                             </button>
@@ -639,41 +137,35 @@
                     </div>
                 </header>
 
-                <!-- #2 Soft nudge banner (anonymous only) -->
-                <div class="nudge-banner" id="nudgeBanner">
-                    📢 Your analyses aren’t saved.
+                <!-- Soft nudge banner (anonymous only) -->
+                <div class="nudge-banner" id="nudgeBanner" style="margin: 0 28px;">
+                    📢 Your analyses aren't saved.
                     <a href="login.html?return=index.html">Login to keep your history →</a>
-                    <button class="nudge-close" id="nudgeClose">×</button>
+                    <button class="nudge-close" id="nudgeClose" aria-label="Dismiss">×</button>
                 </div>
 
                 <div class="content-wrapper">
 
+                    <!-- Upload section -->
                     <section class="upload-section">
                         <div class="card upload-card" id="dropZone">
                             <div class="upload-content">
                                 <div class="icon-upload">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                                        <path
-                                            d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                        <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                        <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" />
+                                    <svg width="46" height="46" viewBox="0 0 24 24" fill="none">
+                                        <path d="M21 15V19C21 19.53 20.79 20.04 20.41 20.41C20.04 20.79 19.53 21 19 21H5C4.47 21 3.96 20.79 3.59 20.41C3.21 20.04 3 19.53 3 19V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M12 3V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </div>
                                 <h3>Upload Log File</h3>
-                                <p>Drag &amp; drop your .txt file here or <span class="highlight-text">browse</span></p>
+                                <p>Drag &amp; drop your <strong>.txt</strong> file here or <span class="highlight-text" id="browseLink">browse</span></p>
                                 <input type="file" id="logFile" accept=".txt" hidden>
                                 <div class="file-status" id="fileInfo">No file selected</div>
-                                <!-- #8 File preview -->
                                 <div class="file-preview" id="filePreview">
                                     <span id="fileSizeInfo"></span>
                                     <span id="fileChunkInfo"></span>
                                 </div>
                             </div>
-
                             <div class="upload-actions">
                                 <button class="btn btn-primary" id="analyzeBtn" disabled>
                                     <span class="btn-text">Start Analysis</span>
@@ -683,6 +175,7 @@
                         </div>
                     </section>
 
+                    <!-- Progress section -->
                     <section class="progress-section hidden" id="progressSection">
                         <div class="card progress-card">
                             <div class="progress-stages">
@@ -701,15 +194,14 @@
                                     <span class="stage-label">Synthesize</span>
                                 </div>
                             </div>
-
                             <div class="progress-bar-container">
                                 <div class="progress-bar" id="progressBar"></div>
                             </div>
-
-                            <div class="progress-message" id="progressMessage">Preparing...</div>
+                            <div class="progress-message" id="progressMessage">Preparing…</div>
                         </div>
                     </section>
 
+                    <!-- Stats section -->
                     <section class="stats-section hidden" id="statsSection">
                         <div class="stats-grid">
                             <div class="stat-card">
@@ -731,6 +223,7 @@
                         </div>
                     </section>
 
+                    <!-- Results section -->
                     <section class="results-section">
                         <div class="card results-card">
                             <div class="card-header">
@@ -738,21 +231,15 @@
                                 <div style="display:flex;gap:8px;">
                                     <button class="icon-btn" id="copyBtn" title="Copy report" style="display:none;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor"
-                                                stroke-width="2" />
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                                                stroke="currentColor" stroke-width="2" />
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
                                         </svg>
                                     </button>
-                                    <button class="icon-btn" id="downloadBtn" title="Download report"
-                                        style="display:none;">
+                                    <button class="icon-btn" id="downloadBtn" title="Download report" style="display:none;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor"
-                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                            <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </button>
                                 </div>
@@ -763,9 +250,8 @@
                                 </div>
                                 <div id="resultsContent" class="markdown-body hidden"></div>
                             </div>
-                            <!-- #5 New Analysis button -->
                             <button class="new-analysis-btn" id="newAnalysisBtn">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                                     <polyline points="1 4 1 10 7 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
@@ -774,23 +260,13 @@
                         </div>
                     </section>
 
-
-
                 </div>
             </main>
         </div>
     </div>
 
-    <div id="appLoader">
-        <div class="loader-content">
-            <h2>Initializing LogAI...</h2>
-        </div>
-    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="settings.js"></script>
     <script src="index.js"></script>
 </body>
 

@@ -183,6 +183,15 @@ dropZone.addEventListener("click", (e) => {
     }
 });
 
+// Also allow clicking the explicit "browse" span
+const browseLink = document.getElementById("browseLink");
+if (browseLink) {
+    browseLink.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
+}
+
 ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
     dropZone.addEventListener(eventName, preventDefaults, false);
 });
@@ -214,7 +223,7 @@ function handleFiles(files) {
         fileInfo.textContent = f.name;
         fileInput.files = files;
         analyzeBtn.disabled = false;
-        fileInfo.style.color = "#3b82f6";
+        fileInfo.style.color = "var(--accent-text)";
 
         // #8 — File preview (size + estimated chunks)
         const sizeKB = (f.size / 1024).toFixed(1);

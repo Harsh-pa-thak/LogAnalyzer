@@ -7,4 +7,6 @@
 - Real-time SSE streaming
 - Smart log chunking
 - Statistical dashboard
-- Deployment on Netlify + Render
+- Deployment on Netlify + Render 
+- Limited Anonymous usage 
+- Unlimited Paid usgae

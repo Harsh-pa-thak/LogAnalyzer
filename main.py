@@ -259,10 +259,8 @@ async def analyze_log_stream(
         except Exception:
             user = None
 
-    # 🆕 USAGE GUARD — thin gate before any AI logic (antigravity, additive only)
     await usage_guard(request, user, supabase_admin)
 
-    # ── Everything below is UNCHANGED ────────────────────────────────────
     if not file.filename.endswith(".txt"):
         return JSONResponse({"error": "Please upload a .txt file"}, status_code=400)
 

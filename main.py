@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -219,6 +220,10 @@ async def _stream_analysis(log_text: str, user_id: str = "", file_name: str = ""
 
 app = FastAPI(title="Log Analyzer Agent")
 
+# ── Static asset mounts (css/ and themes/ directories served as-is) ───────────
+if os.path.isdir("css"):    app.mount("/css",    StaticFiles(directory="css"),    name="css")
+if os.path.isdir("themes"): app.mount("/themes", StaticFiles(directory="themes"), name="themes")
+
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/index.html", response_class=HTMLResponse)
@@ -303,6 +308,11 @@ async def health_check():
     }
 
 
+@app.get("/favicon.svg")
+async def get_favicon():
+    return FileResponse("favicon.svg", media_type="image/svg+xml")
+
+
 @app.get("/style.css")
 async def get_css():
     return FileResponse("style.css", media_type="text/css")
@@ -311,6 +321,11 @@ async def get_css():
 @app.get("/index.js")
 async def get_js():
     return FileResponse("index.js", media_type="application/javascript")
+
+
+@app.get("/settings.js")
+async def get_settings_js():
+    return FileResponse("settings.js", media_type="application/javascript")
 
 
 @app.get("/history.html", response_class=HTMLResponse)

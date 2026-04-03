@@ -5,57 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LogAI — Settings</title>
+    <meta name="description" content="Customize your LogAI experience. Change themes, view account info and usage limits.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Anti-FOUC: load saved theme before render -->
+    <script>
+        (function () {
+            var t = localStorage.getItem("logai_theme") || "dark";
+            var link = document.createElement("link");
+            link.id  = "theme-css";
+            link.rel = "stylesheet";
+            link.href = "themes/" + t + ".css";
+            document.head.appendChild(link);
+        })();
+    </script>
+
+    <!-- Base styles -->
     <link rel="stylesheet" href="style.css">
-    <style>
-        .settings-card {
-            max-width: 520px;
-            margin: 0 auto;
-        }
-
-        .settings-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-        }
-
-        .settings-item:last-child {
-            border-bottom: none;
-        }
-
-        .settings-label {
-            font-size: 14px;
-            color: #f1f5f9;
-            font-weight: 500;
-        }
-
-        .settings-desc {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 3px;
-        }
-
-        .settings-badge {
-            padding: 5px 12px;
-            background: rgba(148, 163, 184, 0.08);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 8px;
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .coming-soon {
-            text-align: center;
-            padding: 20px;
-            font-size: 13px;
-            color: #475569;
-        }
-    </style>
+    <!-- Page-specific styles -->
+    <link rel="stylesheet" href="css/settings.css">
 </head>
 
 <body>
@@ -63,66 +38,117 @@
     <div class="bg-glow"></div>
 
     <div class="app-container">
+
+        <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
         <aside class="sidebar">
             <div class="brand">
                 <div class="logo-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
                 <h1>LogAI</h1>
             </div>
             <nav>
-                <a href="index.html">Dashboard</a>
-                <a href="history.html">History</a>
-                <a href="settings.html" class="active">Settings</a>
+                <a href="index.html"><span>Dashboard</span></a>
+                <a href="history.html"><span>History</span></a>
+                <a href="settings.html" class="active"><span>Settings</span></a>
             </nav>
             <div class="status-indicator">
-                <span class="dot online"></span> System Operational
+                <span class="dot online"></span>
+                System Operational
             </div>
         </aside>
 
+        <!-- ── MAIN CONTENT ───────────────────────────────────────────── -->
         <main class="main-content">
             <header class="top-bar">
                 <h2>Settings</h2>
             </header>
 
             <div class="content-wrapper">
-                <section>
+                <section class="settings-section">
                     <div class="card settings-card">
+
+                        <!-- ── Appearance ───────────────────────────── -->
                         <div class="card-header">
-                            <h3>Preferences</h3>
+                            <h3>Appearance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="settings-section-title">Theme</div>
+                            <!-- Theme grid — populated by settings.js -->
+                            <div class="theme-grid" id="themeGrid"></div>
+                        </div>
+
+                        <!-- ── Account ──────────────────────────────── -->
+                        <div class="card-header" style="margin-top:4px; border-top:1px solid var(--border);">
+                            <h3>Account</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="settings-item">
+                                <div>
+                                    <div class="settings-label">Email</div>
+                                    <div class="settings-desc">Your logged-in account</div>
+                                </div>
+                                <span class="settings-badge" id="settingsEmail">—</span>
+                            </div>
+                            <div class="settings-item">
+                                <div>
+                                    <div class="settings-label">Plan</div>
+                                    <div class="settings-desc">Your current usage tier</div>
+                                </div>
+                                <span class="settings-badge" id="settingsPlan">Free</span>
+                            </div>
+                            <div class="settings-item">
+                                <div>
+                                    <div class="settings-label">Daily Limit</div>
+                                    <div class="settings-desc">Max analyses per calendar day (UTC)</div>
+                                </div>
+                                <span class="settings-badge" id="settingsLimit">3 per day</span>
+                            </div>
+                        </div>
+
+                        <!-- ── System ───────────────────────────────── -->
+                        <div class="card-header" style="margin-top:4px; border-top:1px solid var(--border);">
+                            <h3>System</h3>
                         </div>
                         <div class="card-body">
                             <div class="settings-item">
                                 <div>
                                     <div class="settings-label">Analysis Model</div>
-                                    <div class="settings-desc">AI model used for log analysis</div>
+                                    <div class="settings-desc">AI model powering log analysis</div>
                                 </div>
                                 <span class="settings-badge">Gemini 2.0 Flash</span>
                             </div>
                             <div class="settings-item">
                                 <div>
-                                    <div class="settings-label">Daily Limit</div>
-                                    <div class="settings-desc">Max analyses per day</div>
+                                    <div class="settings-label">Chunk Size</div>
+                                    <div class="settings-desc">Log lines processed per AI call</div>
                                 </div>
-                                <span class="settings-badge">3 (free) / 20 (logged in)</span>
+                                <span class="settings-badge">~30 KB</span>
                             </div>
-                            <div class="settings-item">
+                            <div class="settings-item" style="border-bottom:none;">
                                 <div>
-                                    <div class="settings-label">Theme</div>
-                                    <div class="settings-desc">Interface appearance</div>
+                                    <div class="settings-label">Status</div>
+                                    <div class="settings-desc">Live backend health</div>
                                 </div>
-                                <span class="settings-badge">Dark</span>
+                                <span class="settings-badge" id="settingsStatus">
+                                    <span class="dot online" style="display:inline-block;margin-right:5px;"></span>
+                                    Operational
+                                </span>
                             </div>
-                            <div class="coming-soon">More settings coming soon ✨</div>
                         </div>
+
                     </div>
                 </section>
             </div>
         </main>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="settings.js"></script>
 </body>
 
 </html>

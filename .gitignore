@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+__pycache__
 # Virtual Environment
 venv/
 env/
@@ -21,3 +21,5 @@ env/
 #others
 todo.txt
 kernel.txt
+kernel1.txt
+kernal2.txt

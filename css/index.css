@@ -1,0 +1,28 @@
+/*
+  LogAI — index.css
+  Page-specific styles for the Dashboard (index.html)
+  Extracted from inline <style> block.
+*/
+
+/* ─── Inline Login view (used on index.html if needed) ── */
+#loginView {
+    position:        fixed;
+    inset:           0;
+    z-index:         100;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    padding:         24px;
+}
+
+#loginView.hidden      { display: none; }
+#dashboardView.hidden  { display: none; }
+
+/* ─── Login card (embedded in index) ──────────────────── */
+.lc {
+    width:     100%;
+    max-width: 400px;
+}
+
+/* ─── Upload actions spacing ───────────────────────────── */
+.upload-actions { margin-top: 24px; }

@@ -21,7 +21,11 @@ It converts raw log files into structured, actionable diagnostic reports using l
 > **Version 2.1** introduces anonymous access with controlled usage, improving onboarding while maintaining system cost protection and stability.
 
 ---
-
+## Demo
+<video width="600" controls>
+  <source src="demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 ## Business Value
 
 Modern systems generate large volumes of logs that are difficult to analyze under time constraints.

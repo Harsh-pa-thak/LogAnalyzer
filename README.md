@@ -26,6 +26,8 @@ It converts raw log files into structured, actionable diagnostic reports using l
   <source src="demo.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
+
+---
 ## Business Value
 
 Modern systems generate large volumes of logs that are difficult to analyze under time constraints.

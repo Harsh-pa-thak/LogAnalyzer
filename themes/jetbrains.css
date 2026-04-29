@@ -1,28 +1,23 @@
 /*
   LogAI — JetBrains Darcula Theme
-  Inspired by IntelliJ IDEA Darcula color scheme
+  Inspired by IntelliJ IDEA Darcula color scheme — Flat Design
 */
 
 :root {
     --bg-primary:       #1e1f22;
     --bg-secondary:     #2b2d30;
-    --bg-card:          rgba(43, 45, 48, 0.92);
-    --bg-input:         rgba(30, 31, 34, 0.80);
-    --bg-input-hover:   rgba(43, 45, 48, 0.96);
+    --bg-card:          #2b2d30;
+    --bg-input:         #1e1f22;
+    --bg-input-hover:   #313335;
     --bg-hover:         rgba(77, 80, 84, 0.30);
-    --bg-sidebar:       rgba(30, 31, 34, 0.99);
-    --bg-topbar:        rgba(30, 31, 34, 0.75);
-    --bg-dropdown:      rgba(43, 45, 48, 0.99);
+    --bg-sidebar:       #1e1f22;
+    --bg-topbar:        #1e1f22;
+    --bg-dropdown:      #2b2d30;
     --bg-loader:        #1e1f22;
-    --bg-modal:         rgba(43, 45, 48, 0.99);
+    --bg-modal:         #2b2d30;
     --bg-tag:           rgba(77, 80, 84, 0.35);
-    --bg-stat-card:     rgba(43, 45, 48, 0.88);
-    --bg-login-card:    rgba(43, 45, 48, 0.96);
-
-    --bg-gradient-1:    rgba(255, 140, 0, 0.08);
-    --bg-gradient-2:    rgba(152, 118, 170, 0.08);
-    --bg-glow-start:    #2b2d30;
-    --bg-glow-end:      #cc7832;
+    --bg-stat-card:     #2b2d30;
+    --bg-login-card:    #2b2d30;
 
     --border:           rgba(77, 80, 84, 0.80);
     --border-subtle:    rgba(77, 80, 84, 0.50);
@@ -42,7 +37,7 @@
     --accent-glow:      rgba(204, 120, 50, 0.28);
     --accent-soft:      rgba(204, 120, 50, 0.12);
     --accent-soft-border: rgba(204, 120, 50, 0.28);
-    --accent-gradient:  linear-gradient(135deg, #cc7832, #9876aa);
+    --accent-gradient:  #cc7832;
     --accent-text:      #cc7832;
 
     --success:          #6a8759;
@@ -59,21 +54,21 @@
     --code-text:        #a9b7c6;
     --code-inline-bg:   rgba(77, 80, 84, 0.30);
 
-    --shimmer-a:        rgba(43, 45, 48, 0.70);
-    --shimmer-b:        rgba(60, 63, 65, 0.90);
+    --shimmer-a:        #2b2d30;
+    --shimmer-b:        #3c3f41;
 
-    --history-item-bg:  rgba(43, 45, 48, 0.70);
-    --history-item-hover-bg: rgba(43, 45, 48, 0.96);
+    --history-item-bg:  #2b2d30;
+    --history-item-hover-bg: #313335;
     --history-item-hover-border: rgba(204, 120, 50, 0.38);
 
-    --detail-meta-bg:   rgba(30, 31, 34, 0.70);
-    --detail-report-bg: rgba(30, 31, 34, 0.55);
+    --detail-meta-bg:   #1e1f22;
+    --detail-report-bg: #1e1f22;
 
     --logo-bg:          rgba(204, 120, 50, 0.12);
-    --shadow-card:      0 8px 32px rgba(0, 0, 0, 0.50);
-    --shadow-login:     0 24px 56px rgba(0, 0, 0, 0.65), 0 0 60px rgba(204, 120, 50, 0.08);
-    --backdrop-blur:    blur(10px);
-    --backdrop-blur-heavy: blur(18px);
+    --shadow-card:      0 2px 8px rgba(0, 0, 0, 0.40);
+    --shadow-login:     0 8px 24px rgba(0, 0, 0, 0.50);
+    --backdrop-blur:    none;
+    --backdrop-blur-heavy: none;
     --scrollbar-thumb:  rgba(77, 80, 84, 0.60);
     --scrollbar-track:  transparent;
 }

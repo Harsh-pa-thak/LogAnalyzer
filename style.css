@@ -978,7 +978,7 @@ input:focus {
     align-items:     center;
     gap:             6px;
     padding:         7px 16px;
-    background:      var(--accent-gradient);
+    background:      var(--accent);
     border:          none;
     border-radius:   var(--radius-btn);
     font-family:     var(--font-main);
@@ -987,10 +987,9 @@ input:focus {
     color:           #fff;
     cursor:          pointer;
     text-decoration: none;
-    box-shadow:      0 2px 10px var(--accent-glow);
-    transition:      opacity var(--transition-base), transform var(--transition-fast);
+    transition:      background var(--transition-base), transform var(--transition-fast);
 }
-.login-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+.login-cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
 .login-cta.visible { display: flex; }
 
 /* ── DASHBOARD FADE IN ──────────────────────────────────────────────────────── */
@@ -1021,9 +1020,8 @@ input:focus {
     display:    none;
     position:   fixed;
     inset:      0;
-    background: rgba(0, 0, 10, 0.60);
+    background: rgba(0, 0, 0, 0.60);
     z-index:    199;
-    backdrop-filter: blur(2px);
 }
 .sidebar-backdrop.open { display: block; }
 
@@ -1306,8 +1304,6 @@ input:focus {
     display:         flex;
     flex-direction:  column;
     box-shadow:      var(--shadow-login);
-    backdrop-filter: var(--backdrop-blur-heavy);
-    -webkit-backdrop-filter: var(--backdrop-blur-heavy);
     transition:      background var(--transition-slow), box-shadow var(--transition-slow);
 }
 
@@ -1403,7 +1399,7 @@ input:focus {
     margin-top:      8px;
     width:           100%;
     padding:         13px 20px;
-    background:      var(--accent-gradient);
+    background:      var(--accent);
     border:          none;
     border-radius:   var(--radius-btn);
     font-family:     var(--font-main);
@@ -1415,17 +1411,10 @@ input:focus {
     align-items:     center;
     justify-content: center;
     gap:             8px;
-    box-shadow:      0 4px 16px var(--accent-glow);
-    transition:      opacity var(--transition-base), transform var(--transition-fast);
-    position:        relative;
-    overflow:        hidden;
+    transition:      background var(--transition-base), transform var(--transition-fast);
 }
 .lc-btn-primary::before {
-    content:        '';
-    position:       absolute;
-    inset:          0;
-    background:     linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
-    pointer-events: none;
+    display: none;
 }
 .lc-btn-primary:hover:not(:disabled) { opacity: 0.90; transform: translateY(-1px); }
 .lc-btn-primary:disabled { opacity: 0.52; cursor: not-allowed; }

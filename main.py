@@ -9,6 +9,8 @@ import requests
 import os
 import json
 import asyncio
+import time
+from datetime import datetime, timezone
 from supabase import create_client, Client
 
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -16,6 +18,8 @@ from log_processor import preprocess_log, split_into_chunks, CHUNK_PROMPT, SYNTH
 from usage_guard import usage_guard
 
 load_dotenv()
+
+SERVER_START_TIME = time.time()
 
 
 
@@ -220,6 +224,25 @@ async def _stream_analysis(log_text: str, user_id: str = "", file_name: str = ""
 
 app = FastAPI(title="Log Analyzer Agent")
 
+
+@app.on_event("startup")
+async def start_self_ping():
+    """Background self-ping every 10 min to prevent Render free-tier spin-down."""
+    async def _self_ping():
+        import httpx
+        render_url = os.getenv("RENDER_EXTERNAL_URL", "")
+        if not render_url:
+            return
+        health_url = f"{render_url}/health"
+        async with httpx.AsyncClient(timeout=30) as client:
+            while True:
+                await asyncio.sleep(600)
+                try:
+                    await client.get(health_url)
+                except Exception:
+                    pass
+    asyncio.create_task(_self_ping())
+
 # ── Static asset mounts (css/ and themes/ directories served as-is) ───────────
 if os.path.isdir("css"):    app.mount("/css",    StaticFiles(directory="css"),    name="css")
 if os.path.isdir("themes"): app.mount("/themes", StaticFiles(directory="themes"), name="themes")
@@ -302,10 +325,30 @@ async def get_history(user=Depends(get_current_user)):
 
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    return {
-        "status": "healthy",
-        "google_api_key_configured": bool(os.getenv("GOOGLE_API_KEY"))
-    }
+    uptime_seconds = round(time.time() - SERVER_START_TIME, 1)
+
+    db_ok = False
+    if supabase_admin:
+        try:
+            supabase_admin.table("analyses").select("id").limit(1).execute()
+            db_ok = True
+        except Exception:
+            pass
+
+    return JSONResponse(
+        content={
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "uptime_seconds": uptime_seconds,
+            "google_api_key_configured": bool(os.getenv("GOOGLE_API_KEY")),
+            "database_connected": db_ok,
+        },
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 @app.get("/favicon.svg")

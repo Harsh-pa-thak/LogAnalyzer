@@ -1,29 +1,24 @@
 /*
   LogAI — GitHub Theme
-  GitHub Primer / Dark Dimmed palette
+  GitHub Primer / Dark Dimmed palette — Flat Design
   https://primer.style/primitives/colors
 */
 
 :root {
     --bg-primary:       #0d1117;
     --bg-secondary:     #161b22;
-    --bg-card:          rgba(22, 27, 34, 0.90);
-    --bg-input:         rgba(13, 17, 23, 0.80);
-    --bg-input-hover:   rgba(22, 27, 34, 0.95);
+    --bg-card:          #161b22;
+    --bg-input:         #0d1117;
+    --bg-input-hover:   #1c2128;
     --bg-hover:         rgba(48, 54, 61, 0.50);
-    --bg-sidebar:       rgba(13, 17, 23, 0.98);
-    --bg-topbar:        rgba(13, 17, 23, 0.70);
-    --bg-dropdown:      rgba(22, 27, 34, 0.99);
+    --bg-sidebar:       #0d1117;
+    --bg-topbar:        #0d1117;
+    --bg-dropdown:      #161b22;
     --bg-loader:        #0d1117;
-    --bg-modal:         rgba(22, 27, 34, 0.99);
+    --bg-modal:         #161b22;
     --bg-tag:           rgba(48, 54, 61, 0.60);
-    --bg-stat-card:     rgba(22, 27, 34, 0.85);
-    --bg-login-card:    rgba(22, 27, 34, 0.95);
-
-    --bg-gradient-1:    rgba(35, 197, 94, 0.10);
-    --bg-gradient-2:    rgba(31, 111, 235, 0.10);
-    --bg-glow-start:    #161b22;
-    --bg-glow-end:      #23c55e;
+    --bg-stat-card:     #161b22;
+    --bg-login-card:    #161b22;
 
     --border:           rgba(48, 54, 61, 0.95);
     --border-subtle:    rgba(48, 54, 61, 0.70);
@@ -43,7 +38,7 @@
     --accent-glow:      rgba(31, 111, 235, 0.28);
     --accent-soft:      rgba(31, 111, 235, 0.12);
     --accent-soft-border: rgba(31, 111, 235, 0.25);
-    --accent-gradient:  linear-gradient(135deg, #1f6feb, #388bfd);
+    --accent-gradient:  #1f6feb;
     --accent-text:      #58a6ff;
 
     --success:          #3fb950;
@@ -56,25 +51,25 @@
     --error-text:       #f85149;
     --critical:         #f85149;
 
-    --code-bg:          #161b22;
+    --code-bg:          #0d1117;
     --code-text:        #c9d1d9;
     --code-inline-bg:   rgba(110, 118, 129, 0.14);
 
-    --shimmer-a:        rgba(22, 27, 34, 0.7);
-    --shimmer-b:        rgba(33, 38, 45, 0.9);
+    --shimmer-a:        #161b22;
+    --shimmer-b:        #21262d;
 
-    --history-item-bg:  rgba(22, 27, 34, 0.75);
-    --history-item-hover-bg: rgba(22, 27, 34, 0.98);
+    --history-item-bg:  #161b22;
+    --history-item-hover-bg: #1c2128;
     --history-item-hover-border: rgba(31, 111, 235, 0.40);
 
-    --detail-meta-bg:   rgba(13, 17, 23, 0.70);
-    --detail-report-bg: rgba(13, 17, 23, 0.55);
+    --detail-meta-bg:   #0d1117;
+    --detail-report-bg: #0d1117;
 
     --logo-bg:          rgba(63, 185, 80, 0.10);
-    --shadow-card:      0 8px 32px rgba(1, 4, 9, 0.60);
-    --shadow-login:     0 24px 56px rgba(1, 4, 9, 0.70), 0 0 60px rgba(31, 111, 235, 0.08);
-    --backdrop-blur:    blur(10px);
-    --backdrop-blur-heavy: blur(18px);
+    --shadow-card:      0 2px 8px rgba(1, 4, 9, 0.40);
+    --shadow-login:     0 8px 24px rgba(1, 4, 9, 0.50);
+    --backdrop-blur:    none;
+    --backdrop-blur-heavy: none;
     --scrollbar-thumb:  rgba(48, 54, 61, 0.80);
     --scrollbar-track:  transparent;
 }

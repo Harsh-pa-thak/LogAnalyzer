@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LogAI — Log Analysis Dashboard</title>
-    <meta name="description" content="AI-powered log analysis. Upload your .txt log files and get instant root-cause analysis powered by Gemini.">
+    <meta name="description"
+        content="AI-powered log analysis. Upload your .txt log files and get instant root-cause analysis powered by Gemini.">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -13,7 +14,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
     <!-- Anti-FOUC: apply saved theme instantly before any paint -->
     <script>
@@ -29,7 +32,8 @@
     <link rel="stylesheet" href="css/index.css">
 
     <!-- Markdown + Syntax highlight -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
@@ -57,9 +61,8 @@
                 <div class="brand">
                     <div class="logo-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
-                                stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
                     <h1>LogAI</h1>
@@ -76,11 +79,6 @@
                         <span>Settings</span>
                     </a>
                 </nav>
-
-                <div class="status-indicator">
-                    <span class="dot online"></span>
-                    System Operational
-                </div>
             </aside>
 
             <!-- ── MAIN CONTENT ──────────────────────────────────────────── -->
@@ -90,9 +88,12 @@
                 <header class="top-bar">
                     <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                            <line x1="3" y1="6"  x2="21" y2="6"  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                            <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                            <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
                         </svg>
                     </button>
                     <h2>Log Analysis Dashboard</h2>
@@ -109,21 +110,28 @@
                         </div>
                         <a href="login.html" class="login-cta" id="loginCta">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                             Login
                         </a>
                         <!-- Logged-in state -->
                         <span id="userEmail" class="user-email-text"></span>
-                        <div class="avatar" id="userAvatar" style="display:none;" role="button" aria-label="User menu">AU</div>
+                        <div class="avatar" id="userAvatar" style="display:none;" role="button" aria-label="User menu">
+                            AU</div>
                         <div class="user-dropdown" id="userDropdown">
                             <button class="dropdown-item" id="logoutBtn">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                                 Sign out
                             </button>
@@ -146,13 +154,19 @@
                             <div class="upload-content">
                                 <div class="icon-upload">
                                     <svg width="46" height="46" viewBox="0 0 24 24" fill="none">
-                                        <path d="M21 15V19C21 19.53 20.79 20.04 20.41 20.41C20.04 20.79 19.53 21 19 21H5C4.47 21 3.96 20.79 3.59 20.41C3.21 20.04 3 19.53 3 19V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M12 3V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path
+                                            d="M21 15V19C21 19.53 20.79 20.04 20.41 20.41C20.04 20.79 19.53 21 19 21H5C4.47 21 3.96 20.79 3.59 20.41C3.21 20.04 3 19.53 3 19V15"
+                                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 3V15" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                 </div>
                                 <h3>Upload Log File</h3>
-                                <p>Drag &amp; drop your <strong>.txt</strong> file here or <span class="highlight-text" id="browseLink">browse</span></p>
+                                <p>Drag &amp; drop your <strong>.txt</strong> file here or <span class="highlight-text"
+                                        id="browseLink">browse</span></p>
                                 <input type="file" id="logFile" accept=".txt" hidden>
                                 <div class="file-status" id="fileInfo">No file selected</div>
                                 <div class="file-preview" id="filePreview">
@@ -225,15 +239,21 @@
                                 <div style="display:flex;gap:8px;">
                                     <button class="icon-btn" id="copyBtn" title="Copy report" style="display:none;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor"
+                                                stroke-width="2" />
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                                stroke="currentColor" stroke-width="2" />
                                         </svg>
                                     </button>
-                                    <button class="icon-btn" id="downloadBtn" title="Download report" style="display:none;">
+                                    <button class="icon-btn" id="downloadBtn" title="Download report"
+                                        style="display:none;">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                     </button>
                                 </div>
@@ -246,8 +266,10 @@
                             </div>
                             <button class="new-analysis-btn" id="newAnalysisBtn">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                    <polyline points="1 4 1 10 7 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="1 4 1 10 7 10" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                                 Analyze Another File
                             </button>

@@ -1,8 +1,5 @@
-# robots.txt for LogAI — https://logiaapp.netlify.app
 User-agent: *
 Allow: /
-
-# Disallow auth-required pages from being indexed
 Disallow: /settings.html
 
 Sitemap: https://logiaapp.netlify.app/sitemap.xml

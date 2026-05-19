@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /settings.html
 
-Sitemap: https://logiaapp.netlify.app/sitemap.xml
+Sitemap: https://logaiapp.netlify.app/sitemap.xml

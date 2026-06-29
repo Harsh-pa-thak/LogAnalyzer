@@ -72,7 +72,6 @@ signupBtn.addEventListener("click", async () => {
     showSuccess("Account created! Check your email to confirm, then sign in.");
 });
 
-// ── GitHub OAuth ──────────────────────────────────────────────────────────────
 githubBtn.addEventListener("click", async () => {
     githubBtn.disabled = true;
     githubBtn.innerHTML = `

@@ -14,3 +14,42 @@ html, body {
     padding:         24px;
     box-sizing:      border-box;
 }
+
+/* ─── GitHub OAuth button ──────────────────────────────── */
+.lc-btn-github {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             10px;
+    width:           100%;
+    padding:         0 20px;
+    height:          44px;
+    background:      #24292f;
+    color:           #fff;
+    border:          1px solid #444c56;
+    border-radius:   10px;
+    font-size:       14px;
+    font-weight:     500;
+    font-family:     inherit;
+    cursor:          pointer;
+    transition:      background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+    white-space:     nowrap;
+}
+
+.lc-btn-github:hover:not(:disabled) {
+    background:      #32383f;
+    border-color:    #636e7b;
+}
+
+.lc-btn-github:active:not(:disabled) {
+    transform:       scale(0.98);
+}
+
+.lc-btn-github:disabled {
+    opacity:         0.6;
+    cursor:          not-allowed;
+}
+
+.lc-btn-github svg {
+    flex-shrink: 0;
+}
